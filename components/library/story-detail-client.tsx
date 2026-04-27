@@ -1,5 +1,6 @@
 "use client";
 
+import { PageShell } from "@/components/page-shell";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { startTransition, useCallback, useEffect, useState } from "react";
@@ -28,7 +29,7 @@ type CommentRow = {
 };
 
 export function StoryDetailClient({ id }: { id: string }) {
-  const { status } = useSession();
+  const { status, data: sessionData } = useSession();
   const [story, setStory] = useState<StoryPayload | null>(null);
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -93,56 +94,80 @@ export function StoryDetailClient({ id }: { id: string }) {
 
   if (error && !story) {
     return (
-      <div className="mx-auto max-w-[720px] px-4 py-16">
+      <PageShell max="content">
         <p className="text-sm text-red-300">{error}</p>
-        <Link href="/library" className="mt-4 inline-block text-sm text-gold-400">
+        <Link href="/library" className="mt-3 inline-block text-sm text-gold-400">
           Back to library
         </Link>
-      </div>
+      </PageShell>
     );
   }
 
   if (!story) {
     return (
-      <div className="mx-auto max-w-[720px] px-4 py-16 text-sm text-text-muted">
-        Loading…
-      </div>
+      <PageShell max="content">
+        <p className="text-sm text-text-muted">Loading…</p>
+      </PageShell>
     );
   }
 
   return (
-    <article className="mx-auto max-w-[720px] px-4 py-10 md:px-8">
+    <PageShell max="content">
+      <article>
       <Link
         href="/library"
-        className="text-xs font-medium uppercase tracking-wide text-gold-400/90 hover:text-gold-300"
+        className="text-[11px] font-medium uppercase tracking-wide text-gold-400/90 hover:text-gold-300"
       >
         Library
       </Link>
-      <header className="mt-4 border-b border-border-subtle pb-6">
-        <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+      <header className="mt-3 border-b border-border-subtle pb-4">
+        <h1 className="text-xl font-semibold leading-tight tracking-tight text-text-primary sm:text-2xl">
           {story.title}
         </h1>
-        <p className="mt-2 text-sm text-text-muted">
+        {status === "authenticated" &&
+        sessionData?.user?.id &&
+        sessionData.user.id === story.userId ? (
+          <p className="mt-2 text-xs">
+            <Link
+              href={`/library/${id}/chapters`}
+              className="font-medium text-gold-400 underline hover:text-gold-300"
+            >
+              Manage chapters
+            </Link>
+            {story.visibility === "public" ? (
+              <>
+                {" · "}
+                <Link
+                  href={`/store/${id}`}
+                  className="font-medium text-gold-400 underline hover:text-gold-300"
+                >
+                  View in store
+                </Link>
+              </>
+            ) : null}
+          </p>
+        ) : null}
+        <p className="mt-1.5 text-xs text-text-muted">
           {story.authorName ?? "Author"} ·{" "}
           {new Date(story.createdAt).toLocaleString()} · {story.visibility}
         </p>
         {(story.genre || story.mood) && (
-          <p className="mt-2 text-xs text-text-faint">
+          <p className="mt-1 text-[11px] text-text-faint">
             {[story.genre, story.mood, story.complexity].filter(Boolean).join(" · ")}
           </p>
         )}
       </header>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <span className="text-xs tabular-nums text-text-muted">
-          +{story.likesCount} likes · −{story.dislikesCount} dislikes
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-[11px] tabular-nums text-text-muted">
+          +{story.likesCount} · −{story.dislikesCount}
         </span>
         {status === "authenticated" ? (
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <button
               type="button"
               onClick={() => void sendReaction(story.myReaction === "like" ? null : "like")}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+              className={`rounded-md border px-2.5 py-1 text-[11px] font-medium ${
                 story.myReaction === "like"
                   ? "border-gold-500 bg-gold-500/15 text-gold-200"
                   : "border-border-subtle text-text-muted hover:border-gold-500/35"
@@ -155,7 +180,7 @@ export function StoryDetailClient({ id }: { id: string }) {
               onClick={() =>
                 void sendReaction(story.myReaction === "dislike" ? null : "dislike")
               }
-              className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+              className={`rounded-md border px-2.5 py-1 text-[11px] font-medium ${
                 story.myReaction === "dislike"
                   ? "border-gold-500 bg-gold-500/15 text-gold-200"
                   : "border-border-subtle text-text-muted hover:border-gold-500/35"
@@ -171,37 +196,39 @@ export function StoryDetailClient({ id }: { id: string }) {
         )}
       </div>
 
-      <div className="prose prose-invert mt-8 max-w-none">
-        <pre className="whitespace-pre-wrap rounded-xl border border-border-subtle bg-obsidian-950/70 p-6 font-serif text-[15px] leading-relaxed text-text-primary">
+      <div className="prose prose-invert mt-5 max-w-none">
+        <pre className="whitespace-pre-wrap rounded-lg border border-border-subtle bg-obsidian-950/70 p-3 font-serif text-[15px] leading-relaxed text-text-primary sm:p-4">
           {story.body}
         </pre>
       </div>
 
-      <section className="mt-12 border-t border-border-subtle pt-8">
-        <h2 className="text-lg font-semibold text-text-primary">Comments</h2>
-        <ul className="mt-4 flex flex-col gap-4">
+      <section className="mt-8 border-t border-border-subtle pt-5">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-text-faint">
+          Comments
+        </h2>
+        <ul className="mt-2 flex flex-col gap-2">
           {comments.length === 0 ? (
-            <li className="text-sm text-text-muted">No comments yet.</li>
+            <li className="text-xs text-text-muted">No comments yet.</li>
           ) : (
             comments.map((c) => (
               <li
                 key={c.id}
-                className="rounded-lg border border-border-subtle bg-elevated/40 p-4"
+                className="rounded-md border border-border-subtle bg-elevated/40 p-3"
               >
-                <p className="text-xs text-text-faint">
+                <p className="text-[11px] text-text-faint">
                   {c.authorName ?? "Reader"} ·{" "}
                   {new Date(c.createdAt).toLocaleString()}
                 </p>
-                <p className="mt-2 text-sm text-text-primary">{c.body}</p>
+                <p className="mt-1.5 text-sm leading-snug text-text-primary">{c.body}</p>
               </li>
             ))
           )}
         </ul>
 
         {status === "authenticated" ? (
-          <div className="mt-6">
+          <div className="mt-4">
             <textarea
-              className="min-h-[100px] w-full rounded-lg border border-border-subtle bg-obsidian-950/70 px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/25 focus:ring-2"
+              className="min-h-[88px] w-full rounded-md border border-border-subtle bg-obsidian-950/70 px-2.5 py-2 text-sm text-text-primary outline-none ring-gold-500/25 focus:ring-2"
               placeholder="Add a note for the author…"
               value={commentBody}
               onChange={(e) => setCommentBody(e.target.value)}
@@ -210,13 +237,13 @@ export function StoryDetailClient({ id }: { id: string }) {
               type="button"
               disabled={posting || !commentBody.trim()}
               onClick={() => void postComment()}
-              className="mt-2 rounded-lg bg-gold-500/90 px-4 py-2 text-sm font-semibold text-obsidian-950 disabled:opacity-50"
+              className="mt-2 rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-obsidian-950 disabled:opacity-50"
             >
               {posting ? "Posting…" : "Post comment"}
             </button>
           </div>
         ) : (
-          <p className="mt-4 text-sm text-text-muted">
+          <p className="mt-3 text-xs text-text-muted">
             <Link href="/auth/signin" className="text-gold-400 underline">
               Sign in
             </Link>{" "}
@@ -224,6 +251,7 @@ export function StoryDetailClient({ id }: { id: string }) {
           </p>
         )}
       </section>
-    </article>
+      </article>
+    </PageShell>
   );
 }

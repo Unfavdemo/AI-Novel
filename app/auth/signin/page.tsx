@@ -1,29 +1,47 @@
 import Link from "next/link";
 import { signInWithGithub } from "@/app/auth/signin/actions";
 
-export default function SignInPage() {
+type SignInPageProps = {
+  searchParams?: Promise<{ callbackUrl?: string | string[] }>;
+};
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
   const hasGithub =
     Boolean(process.env.AUTH_GITHUB_ID) &&
     Boolean(process.env.AUTH_GITHUB_SECRET);
 
+  const sp = searchParams ? await searchParams : {};
+  const raw = sp.callbackUrl;
+  const fromQuery =
+    typeof raw === "string"
+      ? raw
+      : Array.isArray(raw)
+        ? raw[0]
+        : undefined;
+  const callbackUrl =
+    fromQuery?.startsWith("/") && !fromQuery.startsWith("//")
+      ? fromQuery
+      : "/library";
+
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
-      <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-500/90">
+    <div className="mx-auto flex min-h-[55vh] max-w-sm flex-col justify-center px-3 py-10 sm:px-4">
+      <p className="text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-500/90">
         Atelier
       </p>
-      <h1 className="mt-2 text-center text-2xl font-semibold tracking-tight text-text-primary">
+      <h1 className="mt-1.5 text-center text-xl font-semibold tracking-tight text-text-primary">
         Sign in
       </h1>
-      <p className="mt-2 text-center text-sm text-text-muted">
-        Use GitHub to access your private shelf, reactions, and comments.
+      <p className="mt-1.5 text-center text-xs text-text-muted">
+        GitHub unlocks your shelf, reactions, and comments.
       </p>
 
-      <div className="mt-10 flex flex-col gap-3">
+      <div className="mt-6 flex flex-col gap-2">
         {hasGithub ? (
           <form action={signInWithGithub}>
+            <input type="hidden" name="callbackUrl" value={callbackUrl} />
             <button
               type="submit"
-              className="w-full rounded-lg border border-border-subtle bg-elevated px-4 py-3 text-sm font-semibold text-text-primary transition hover:border-gold-500/40 hover:bg-elevated-2"
+              className="w-full rounded-md border border-border-subtle bg-elevated px-3 py-2.5 text-sm font-semibold text-text-primary transition hover:border-gold-500/40 hover:bg-elevated-2"
             >
               Continue with GitHub
             </button>
@@ -45,9 +63,9 @@ export default function SignInPage() {
         </Link>
         <Link
           href="/"
-          className="text-center text-sm text-text-faint hover:text-text-muted"
+          className="text-center text-xs text-text-faint hover:text-text-muted"
         >
-          Back to studio
+          Back to catalog
         </Link>
       </div>
     </div>

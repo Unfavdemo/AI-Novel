@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Atelier — Novel & Audiobook Studio",
+  title: "Atelier — Serialized stories",
   description:
-    "AI-assisted manuscript generation and multi-voice audiobook layout.",
+    "Read serialized fiction chapter by chapter. Creators use the studio for AI-assisted manuscripts and audiobook layout.",
 };
 
 export default function RootLayout({
@@ -33,7 +33,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-surface font-sans text-text-primary">
         <Providers>
           <SiteHeader />
-          {children}
+          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
         </Providers>
       </body>
     </html>

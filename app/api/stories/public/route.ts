@@ -12,20 +12,40 @@ export async function GET(req: Request) {
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
   const offset = (page - 1) * limit;
 
-  const rows = await db
+  const storyRows = await db
     .select({
       id: stories.id,
+      userId: stories.userId,
       title: stories.title,
       createdAt: stories.createdAt,
-      authorName: users.name,
-      authorImage: users.image,
     })
     .from(stories)
-    .innerJoin(users, eq(stories.userId, users.id))
     .where(eq(stories.visibility, "public"))
     .orderBy(desc(stories.createdAt))
     .limit(limit)
     .offset(offset);
+
+  const authorIds = [...new Set(storyRows.map((r) => r.userId))];
+  const authorRows =
+    authorIds.length === 0
+      ? []
+      : await db
+          .select({
+            id: users.id,
+            name: users.name,
+            image: users.image,
+          })
+          .from(users)
+          .where(inArray(users.id, authorIds));
+  const authorById = new Map(authorRows.map((a) => [a.id, a]));
+
+  const rows = storyRows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    createdAt: r.createdAt,
+    authorName: authorById.get(r.userId)?.name ?? null,
+    authorImage: authorById.get(r.userId)?.image ?? null,
+  }));
 
   const ids = rows.map((r) => r.id);
   const counts =

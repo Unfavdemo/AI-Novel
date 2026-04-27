@@ -1,4 +1,14 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a [Next.js](https://nextjs.org) app: reader-facing catalog at `/`, creator studio at `/studio`, and Postgres-backed stories/chapters.
+
+Client-facing **pricing and five-year cost guide** (AI text + voice, plain-English scenarios, developer rates): [docs/CLIENT_PRICING_AND_TCO.md](docs/CLIENT_PRICING_AND_TCO.md).
+
+## Database and sample books
+
+1. Set `DATABASE_URL` in `.env` (see [.env.example](.env.example)).
+2. Apply schema: `pnpm db:migrate` or `pnpm db:push`.
+3. Load **demo public series** (demo author + 3 multi-chapter books): `pnpm db:seed`.
+
+Re-running `pnpm db:seed` deletes the demo author (`00000000-0000-4000-8000-000000000001`) and re-inserts the sample catalog (safe for local dev). If you set `CATALOG_AUTHOR_USER_ID` in `.env`, use that same UUID—or unset it—so the home catalog lists the demo series.
 
 ## Getting Started
 

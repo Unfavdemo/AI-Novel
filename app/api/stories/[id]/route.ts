@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { comments, stories, storyReactions, users } from "@/db/schema";
+import { chapters, comments, stories, storyReactions, users } from "@/db/schema";
 import { requireUser } from "@/lib/require-user";
 import { canReadStory } from "@/lib/story-access";
 import type { InferInsertModel } from "drizzle-orm";
@@ -116,6 +116,22 @@ export async function PATCH(req: Request, ctx: RouteCtx) {
     .set(patch)
     .where(eq(stories.id, id))
     .returning();
+
+  if (updated) {
+    const chPatch: Partial<typeof chapters.$inferInsert> = {
+      updatedAt: new Date(),
+    };
+    if (typeof patch.body === "string") chPatch.body = patch.body;
+    if (patch.visibility === "public" || patch.visibility === "private") {
+      chPatch.isFreePreview = patch.visibility === "public";
+    }
+    if (chPatch.body !== undefined || chPatch.isFreePreview !== undefined) {
+      await db
+        .update(chapters)
+        .set(chPatch)
+        .where(and(eq(chapters.storyId, id), eq(chapters.sortIndex, 0)));
+    }
+  }
 
   return NextResponse.json({ story: updated });
 }

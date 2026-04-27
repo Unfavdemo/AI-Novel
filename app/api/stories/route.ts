@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { stories } from "@/db/schema";
+import { chapters, stories } from "@/db/schema";
 import { requireUser } from "@/lib/require-user";
 import { NextResponse } from "next/server";
 
@@ -33,37 +33,51 @@ export async function POST(req: Request) {
     );
   }
 
-  const [row] = await db
-    .insert(stories)
-    .values({
-      userId: userId!,
-      title,
-      body: text,
-      visibility,
-      genre: typeof b.genre === "string" ? b.genre : null,
-      mood: typeof b.mood === "string" ? b.mood : null,
-      complexity: typeof b.complexity === "string" ? b.complexity : null,
-      literarySophistication:
-        typeof b.literarySophistication === "number"
-          ? b.literarySophistication
-          : typeof b.literarySophistication === "string"
-            ? parseInt(b.literarySophistication, 10)
-            : null,
-      narrativeTension:
-        typeof b.narrativeTension === "number"
-          ? b.narrativeTension
-          : typeof b.narrativeTension === "string"
-            ? parseInt(b.narrativeTension, 10)
-            : null,
-      targetCharacterCount:
-        typeof b.targetCharacterCount === "number"
-          ? b.targetCharacterCount
-          : typeof b.targetCharacterCount === "string"
-            ? parseInt(b.targetCharacterCount, 10)
-            : null,
-      updatedAt: new Date(),
-    })
-    .returning({ id: stories.id });
+  const [row] = await db.transaction(async (tx) => {
+    const [storyRow] = await tx
+      .insert(stories)
+      .values({
+        userId: userId!,
+        title,
+        body: text,
+        visibility,
+        genre: typeof b.genre === "string" ? b.genre : null,
+        mood: typeof b.mood === "string" ? b.mood : null,
+        complexity: typeof b.complexity === "string" ? b.complexity : null,
+        literarySophistication:
+          typeof b.literarySophistication === "number"
+            ? b.literarySophistication
+            : typeof b.literarySophistication === "string"
+              ? parseInt(b.literarySophistication, 10)
+              : null,
+        narrativeTension:
+          typeof b.narrativeTension === "number"
+            ? b.narrativeTension
+            : typeof b.narrativeTension === "string"
+              ? parseInt(b.narrativeTension, 10)
+              : null,
+        targetCharacterCount:
+          typeof b.targetCharacterCount === "number"
+            ? b.targetCharacterCount
+            : typeof b.targetCharacterCount === "string"
+              ? parseInt(b.targetCharacterCount, 10)
+              : null,
+        updatedAt: new Date(),
+      })
+      .returning({ id: stories.id });
+
+    if (storyRow?.id) {
+      await tx.insert(chapters).values({
+        storyId: storyRow.id,
+        sortIndex: 0,
+        title: "Chapter 1",
+        body: text,
+        isFreePreview: visibility === "public",
+        updatedAt: new Date(),
+      });
+    }
+    return [storyRow];
+  });
 
   return NextResponse.json({ id: row?.id }, { status: 201 });
 }

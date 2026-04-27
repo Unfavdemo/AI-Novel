@@ -1,5 +1,6 @@
 "use client";
 
+import { PageShell } from "@/components/page-shell";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -89,19 +90,23 @@ export default function LibraryPage() {
         }));
 
   return (
-    <div className="mx-auto max-w-[960px] px-4 py-10 md:px-8">
-      <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
-        Library
-      </h1>
-      <p className="mt-1 text-sm text-text-muted">
-        Private shelf for drafts and a public catalog for finished work.
-      </p>
+    <PageShell>
+      <div className="flex flex-col gap-2 border-b border-border-subtle pb-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-text-primary sm:text-2xl">
+            Library
+          </h1>
+          <p className="mt-0.5 text-xs text-text-muted sm:text-[13px]">
+            Your drafts and the public catalog.
+          </p>
+        </div>
+      </div>
 
-      <div className="mt-8 flex gap-2 border-b border-border-subtle">
+      <div className="mt-3 flex gap-1 border-b border-border-subtle">
         <button
           type="button"
           onClick={() => setTab("mine")}
-          className={`border-b-2 px-4 py-2 text-sm font-medium transition ${
+          className={`border-b-2 px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
             tab === "mine"
               ? "border-gold-500 text-gold-300"
               : "border-transparent text-text-muted hover:text-text-primary"
@@ -112,7 +117,7 @@ export default function LibraryPage() {
         <button
           type="button"
           onClick={() => setTab("public")}
-          className={`border-b-2 px-4 py-2 text-sm font-medium transition ${
+          className={`border-b-2 px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
             tab === "public"
               ? "border-gold-500 text-gold-300"
               : "border-transparent text-text-muted hover:text-text-primary"
@@ -123,7 +128,7 @@ export default function LibraryPage() {
       </div>
 
       {tab === "mine" && status !== "authenticated" ? (
-        <p className="mt-8 rounded-lg border border-border-subtle bg-elevated/60 p-6 text-sm text-text-muted">
+        <p className="mt-4 rounded-md border border-border-subtle bg-elevated/60 p-3 text-xs text-text-muted sm:text-sm">
           <Link href="/auth/signin" className="font-medium text-gold-400 underline">
             Sign in
           </Link>{" "}
@@ -132,35 +137,37 @@ export default function LibraryPage() {
       ) : null}
 
       {error ? (
-        <p className="mt-6 text-sm text-red-300">{error}</p>
+        <p className="mt-4 text-sm text-red-300">{error}</p>
       ) : loading ? (
-        <p className="mt-8 text-sm text-text-muted">Loading…</p>
+        <p className="mt-4 text-sm text-text-muted">Loading…</p>
       ) : list.length === 0 ? (
-        <p className="mt-8 text-sm text-text-muted">
+        <p className="mt-4 text-sm text-text-muted">
           {tab === "mine"
             ? "No saved manuscripts yet. Save from the studio."
             : "No public stories yet."}
         </p>
       ) : (
-        <ul className="mt-6 flex flex-col gap-3">
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {list.map((s) => (
             <li key={s.key}>
               <Link
                 href={s.href}
-                className="block rounded-xl border border-border-subtle bg-elevated/50 p-4 transition hover:border-gold-500/30 hover:bg-elevated"
+                className="flex h-full flex-col rounded-lg border border-border-subtle bg-elevated/50 p-3 transition hover:border-gold-500/30 hover:bg-elevated"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <span className="font-medium text-text-primary">{s.title}</span>
-                  <span className="text-xs tabular-nums text-text-faint">
+                  <span className="line-clamp-2 text-sm font-medium leading-snug text-text-primary">
+                    {s.title}
+                  </span>
+                  <span className="shrink-0 text-[10px] tabular-nums text-text-faint">
                     +{s.likes} / −{s.dislikes}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-text-muted">{s.meta}</p>
+                <p className="mt-1.5 text-[11px] text-text-muted">{s.meta}</p>
               </Link>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </PageShell>
   );
 }

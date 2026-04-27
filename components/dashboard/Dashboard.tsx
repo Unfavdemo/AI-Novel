@@ -31,13 +31,13 @@ export function Dashboard() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[radial-gradient(1200px_circle_at_20%_-10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(900px_circle_at_100%_0%,rgba(90,110,180,0.07),transparent_50%)]">
-      <div className="border-b border-border-subtle bg-obsidian-950/30 px-4 py-4 md:px-8">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4">
+      <div className="border-b border-border-subtle bg-obsidian-950/30 px-3 py-2.5 sm:px-4 md:px-5">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-text-primary md:text-2xl">
+            <h1 className="text-lg font-semibold tracking-tight text-text-primary md:text-xl">
               Novel &amp; Audiobook studio
             </h1>
-            <p className="mt-1 text-sm text-text-muted">
+            <p className="mt-0.5 text-xs text-text-muted md:text-sm">
               Manuscript engine and split-track casting.{" "}
               <Link href="/library" className="text-gold-400/90 hover:underline">
                 Open library
@@ -66,7 +66,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 px-4 py-6 md:px-8">
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-3 px-3 py-4 sm:px-4 md:px-5">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_1fr] lg:items-start">
           <IntrigueMeter storyText={storyText} />
           <div className="flex flex-wrap items-center justify-end gap-2">

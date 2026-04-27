@@ -6,6 +6,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "@auth/core/adapters";
 
@@ -143,10 +144,72 @@ export const commentsRelations = relations(comments, ({ one }) => ({
   user: one(users, { fields: [comments.userId], references: [users.id] }),
 }));
 
+export const chapters = pgTable(
+  "chapters",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    storyId: text("story_id")
+      .notNull()
+      .references(() => stories.id, { onDelete: "cascade" }),
+    sortIndex: integer("sort_index").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    isFreePreview: boolean("is_free_preview").notNull().default(false),
+    priceCents: integer("price_cents"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => ({
+    storySortUnique: uniqueIndex("chapters_story_id_sort_idx").on(
+      t.storyId,
+      t.sortIndex,
+    ),
+  }),
+);
+
+export const chapterUnlocks = pgTable(
+  "chapter_unlocks",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    chapterId: text("chapter_id")
+      .notNull()
+      .references(() => chapters.id, { onDelete: "cascade" }),
+    unlockedAt: timestamp("unlocked_at", { mode: "date" }).defaultNow().notNull(),
+    source: text("source")
+      .notNull()
+      .$type<"stub" | "stripe">()
+      .default("stub"),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.chapterId] }),
+  }),
+);
+
+export const chaptersRelations = relations(chapters, ({ one, many }) => ({
+  story: one(stories, { fields: [chapters.storyId], references: [stories.id] }),
+  unlocks: many(chapterUnlocks),
+}));
+
+export const chapterUnlocksRelations = relations(chapterUnlocks, ({ one }) => ({
+  chapter: one(chapters, {
+    fields: [chapterUnlocks.chapterId],
+    references: [chapters.id],
+  }),
+  user: one(users, {
+    fields: [chapterUnlocks.userId],
+    references: [users.id],
+  }),
+}));
+
 export const storiesRelations = relations(stories, ({ one, many }) => ({
   author: one(users, { fields: [stories.userId], references: [users.id] }),
   reactions: many(storyReactions),
   comments: many(comments),
+  chapters: many(chapters),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -155,4 +218,5 @@ export const usersRelations = relations(users, ({ many }) => ({
   stories: many(stories),
   reactions: many(storyReactions),
   comments: many(comments),
+  chapterUnlocks: many(chapterUnlocks),
 }));

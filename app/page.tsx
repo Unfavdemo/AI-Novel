@@ -1,5 +1,5 @@
-import { Dashboard } from "@/components/dashboard/Dashboard";
+import { StoreCatalogClient } from "@/components/store/store-catalog-client";
 
 export default function Home() {
-  return <Dashboard />;
+  return <StoreCatalogClient />;
 }
