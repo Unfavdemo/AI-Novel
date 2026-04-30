@@ -30,6 +30,7 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
   const [series, setSeries] = useState<SeriesPayload | null>(null);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -66,10 +67,23 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
   }, [load]);
 
   const unlock = async (chapterId: string) => {
+    setUnlockError(null);
     const res = await fetch(`/api/catalog/chapters/${chapterId}/unlock`, {
       method: "POST",
     });
-    if (res.ok) void load();
+    if (!res.ok) {
+      if (res.status === 401) {
+        setUnlockError("Session expired. Sign in again before unlocking.");
+        return;
+      }
+      if (res.status === 403) {
+        setUnlockError("Unlocks are currently unavailable in this environment.");
+        return;
+      }
+      setUnlockError("Unlock request failed. Please retry.");
+      return;
+    }
+    void load();
   };
 
   if (error && !series) {
@@ -131,6 +145,9 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-text-faint">
           Chapters
         </h2>
+        {unlockError ? (
+          <p className="mt-2 text-xs text-red-300">{unlockError}</p>
+        ) : null}
         <ol className="mt-2 divide-y divide-border-subtle rounded-lg border border-border-subtle bg-elevated/40">
           {chapters.map((c) => (
             <li
@@ -149,6 +166,9 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
                       : "Locked"}
                   {c.priceCents != null && c.priceCents > 0
                     ? ` · $${(c.priceCents / 100).toFixed(2)}`
+                    : ""}
+                  {!c.canReadBody && !c.isFreePreview
+                    ? " · Unlock grants full chapter access"
                     : ""}
                 </span>
               </div>

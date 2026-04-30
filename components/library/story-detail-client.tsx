@@ -151,6 +151,17 @@ export function StoryDetailClient({ id }: { id: string }) {
           {story.authorName ?? "Author"} ·{" "}
           {new Date(story.createdAt).toLocaleString()} · {story.visibility}
         </p>
+        <p
+          className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+            story.visibility === "public"
+              ? "border-gold-500/40 bg-gold-500/10 text-gold-300"
+              : "border-border-subtle bg-elevated/50 text-text-muted"
+          }`}
+        >
+          {story.visibility === "public"
+            ? "Published in store"
+            : "Draft only (private shelf)"}
+        </p>
         {(story.genre || story.mood) && (
           <p className="mt-1 text-[11px] text-text-faint">
             {[story.genre, story.mood, story.complexity].filter(Boolean).join(" · ")}

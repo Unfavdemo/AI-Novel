@@ -56,8 +56,8 @@ export function VoiceConsole({
           </button>
         </div>
         <p className="border-b border-border-subtle px-4 py-2 text-xs text-text-muted">
-          Assign casting presets per detected speaker tag. Preview uses the TTS
-          stub until ElevenLabs is wired.
+          Assign casting presets per detected speaker tag. Preview uses the
+          configured TTS provider.
         </p>
         <div className="flex-1 overflow-y-auto px-4 py-3">
           {speakers.length === 0 ? (

@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --import tsx --test ./tests/**/*.test.ts",
+    "test:smoke": "tsx ./scripts/smoke-sprint3.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env node_modules/drizzle-kit/bin.cjs migrate",
     "db:push": "drizzle-kit push",

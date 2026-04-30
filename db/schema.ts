@@ -8,7 +8,8 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import type { AdapterAccountType } from "@auth/core/adapters";
+
+type AccountType = "oauth" | "oidc" | "email" | "credentials" | "webauthn";
 
 /** Auth.js default table shape (PostgreSQL) */
 export const users = pgTable("user", {
@@ -27,7 +28,7 @@ export const accounts = pgTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccountType>().notNull(),
+    type: text("type").$type<AccountType>().notNull(),
     provider: text("provider").notNull(),
     providerAccountId: text("providerAccountId").notNull(),
     refresh_token: text("refresh_token"),
@@ -188,6 +189,20 @@ export const chapterUnlocks = pgTable(
     pk: primaryKey({ columns: [t.userId, t.chapterId] }),
   }),
 );
+
+export const usageEvents = pgTable("usage_events", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+  capability: text("capability").notNull().$type<"llm_generation" | "tts_synthesis">(),
+  provider: text("provider").notNull(),
+  model: text("model"),
+  units: integer("units").notNull().default(0),
+  unitType: text("unit_type").notNull().$type<"tokens" | "characters" | "seconds">(),
+  metadata: text("metadata"),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
 
 export const chaptersRelations = relations(chapters, ({ one, many }) => ({
   story: one(stories, { fields: [chapters.storyId], references: [stories.id] }),

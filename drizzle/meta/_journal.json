@@ -15,6 +15,13 @@
       "when": 1777311075132,
       "tag": "0001_chapters",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777549800000,
+      "tag": "0002_usage_events",
+      "breakpoints": true
     }
   ]
 }

@@ -26,6 +26,7 @@ export function StoreChapterClient({
   const [chapter, setChapter] = useState<ChapterPayload | null>(null);
   const [teaser, setTeaser] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [nav, setNav] = useState<{ prevId: string | null; nextId: string | null }>({
     prevId: null,
@@ -107,13 +108,24 @@ export function StoreChapterClient({
   }, [loadChapter, loadSeriesNav]);
 
   const unlock = async () => {
+    setUnlockError(null);
     const res = await fetch(`/api/catalog/chapters/${chapterId}/unlock`, {
       method: "POST",
     });
-    if (res.ok) {
-      setLoading(true);
-      await loadChapter();
+    if (!res.ok) {
+      if (res.status === 401) {
+        setUnlockError("Session expired. Sign in again, then retry unlock.");
+        return;
+      }
+      if (res.status === 403) {
+        setUnlockError("Unlocks are currently unavailable in this environment.");
+        return;
+      }
+      setUnlockError("Unlock request failed. Please retry.");
+      return;
     }
+    setLoading(true);
+    await loadChapter();
   };
 
   if (error && !chapter) {
@@ -182,10 +194,18 @@ export function StoreChapterClient({
 
       {locked && teaser ? (
         <div className="mt-4 space-y-3">
-          <p className="text-xs text-text-muted">Locked — preview:</p>
+          <p className="text-xs text-text-muted">
+            Chapter locked. Unlock to continue from this preview.
+            {chapter?.priceCents != null && chapter.priceCents > 0
+              ? ` Price: $${(chapter.priceCents / 100).toFixed(2)}.`
+              : ""}
+          </p>
           <pre className="whitespace-pre-wrap rounded-lg border border-border-subtle bg-obsidian-950/70 p-3 font-serif text-[13px] leading-relaxed text-text-muted">
             {teaser}
           </pre>
+          {unlockError ? (
+            <p className="text-xs text-red-300">{unlockError}</p>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <button
               type="button"

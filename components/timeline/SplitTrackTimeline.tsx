@@ -91,7 +91,7 @@ export function SplitTrackTimeline({
           onClick={() => void handlePlayAll()}
           className="shrink-0 rounded-lg border border-gold-500/35 bg-gold-500/10 px-3 py-1.5 text-xs font-semibold text-gold-200 transition hover:border-gold-400/50"
         >
-          Play all (stub)
+          Play all
         </button>
       </header>
 
