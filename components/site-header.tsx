@@ -30,12 +30,6 @@ export async function SiteHeader() {
             >
               Customer
             </Link>
-            <Link
-              href="/admin"
-              className="rounded-md px-2 py-1 transition hover:bg-elevated hover:text-gold-300"
-            >
-              Admin
-            </Link>
             {session?.user ? (
               <Link
                 href="/studio"
@@ -67,14 +61,7 @@ export async function SiteHeader() {
                 </button>
               </form>
             </>
-          ) : (
-            <Link
-              href="/auth/signin"
-              className="rounded-md border border-gold-500/40 bg-gradient-to-r from-gold-600/90 to-gold-400/90 px-2.5 py-1 text-xs font-semibold text-obsidian-950 transition hover:from-gold-500 hover:to-gold-300"
-            >
-              Sign in
-            </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </header>

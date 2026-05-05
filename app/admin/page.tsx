@@ -1,6 +1,19 @@
 import Link from "next/link";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-export default function AdminPrototypePage() {
+export default async function AdminPrototypePage() {
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!adminEmail) {
+    redirect("/");
+  }
+
+  const session = await auth();
+  const isAdmin = session?.user?.email?.toLowerCase() === adminEmail;
+  if (!isAdmin) {
+    redirect("/admin/login?callbackUrl=/admin");
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-4 py-8">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-400">

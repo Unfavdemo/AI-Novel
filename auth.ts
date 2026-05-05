@@ -45,6 +45,55 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "database" },
   providers: [
     Credentials({
+      id: "admin",
+      name: "Admin",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const adminEmail = process.env.ADMIN_EMAIL?.trim();
+        const adminPassword = process.env.ADMIN_PASSWORD ?? "";
+        const emailRaw =
+          typeof credentials?.email === "string" ? credentials.email.trim() : "";
+        const passwordRaw =
+          typeof credentials?.password === "string" ? credentials.password : "";
+
+        if (!adminEmail || !adminPassword) return null;
+        if (emailRaw.toLowerCase() !== adminEmail.toLowerCase()) return null;
+        if (passwordRaw !== adminPassword) return null;
+
+        const [existing] = await db
+          .select({ id: users.id, name: users.name, email: users.email })
+          .from(users)
+          .where(eq(users.email, adminEmail))
+          .limit(1);
+
+        if (existing) {
+          return {
+            id: existing.id,
+            name: existing.name ?? "Admin",
+            email: existing.email ?? adminEmail,
+          };
+        }
+
+        const [created] = await db
+          .insert(users)
+          .values({
+            name: "Admin",
+            email: adminEmail,
+          })
+          .returning({ id: users.id, name: users.name, email: users.email });
+
+        if (!created) return null;
+        return {
+          id: created.id,
+          name: created.name ?? "Admin",
+          email: created.email ?? adminEmail,
+        };
+      },
+    }),
+    Credentials({
       id: "guest",
       name: "Guest",
       credentials: {},
