@@ -1,5 +1,4 @@
 import NextAuth from "next-auth";
-import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/db";
@@ -85,17 +84,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
-    ...(() => {
-      const githubId = process.env.AUTH_GITHUB_ID?.trim();
-      const githubSecret = process.env.AUTH_GITHUB_SECRET?.trim();
-      if (!githubId || !githubSecret) return [];
-      return [
-        GitHub({
-          clientId: githubId,
-          clientSecret: githubSecret,
-        }),
-      ];
-    })(),
   ],
   callbacks: {
     session({ session, user }) {

@@ -1,14 +1,11 @@
 import Link from "next/link";
-import { signInAsGuest, signInWithGithub } from "@/app/auth/signin/actions";
+import { signInAsGuest } from "@/app/auth/signin/actions";
 
 type SignInPageProps = {
   searchParams?: Promise<{ callbackUrl?: string | string[]; error?: string | string[] }>;
 };
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
-  const hasGithub =
-    Boolean(process.env.AUTH_GITHUB_ID) &&
-    Boolean(process.env.AUTH_GITHUB_SECRET);
   const guestAllowed =
     process.env.ALLOW_GUEST_AUTH === "true" || process.env.NODE_ENV !== "production";
 
@@ -41,34 +38,24 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       </p>
 
       <div className="mt-6 flex flex-col gap-2">
-        {hasGithub ? (
-          <form action={signInWithGithub}>
+        {guestAllowed ? (
+          <form action={signInAsGuest}>
             <input type="hidden" name="callbackUrl" value={callbackUrl} />
             <button
               type="submit"
               className="w-full rounded-md border border-border-subtle bg-elevated px-3 py-2.5 text-sm font-semibold text-text-primary transition hover:border-gold-500/40 hover:bg-elevated-2"
             >
-              Continue with GitHub
+              Continue as Guest
             </button>
           </form>
         ) : (
           <div className="rounded-lg border border-gold-500/25 bg-obsidian-950/80 p-4 text-center text-sm text-text-muted">
             <p>
-              OAuth is not configured. You can continue as guest, or configure an
-              auth provider in <code className="font-mono text-gold-400">.env</code>{" "}
-              and restart the dev server.
+              Guest sign-in is disabled in this environment. Set{" "}
+              <code className="font-mono text-gold-400">ALLOW_GUEST_AUTH=true</code> in{" "}
+              <code className="font-mono text-gold-400">.env</code> and restart the dev
+              server.
             </p>
-            {guestAllowed ? (
-              <form action={signInAsGuest} className="mt-3">
-                <input type="hidden" name="callbackUrl" value={callbackUrl} />
-                <button
-                  type="submit"
-                  className="w-full rounded-md border border-border-subtle bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition hover:border-gold-500/40 hover:bg-elevated-2"
-                >
-                  Continue as Guest
-                </button>
-              </form>
-            ) : null}
           </div>
         )}
         {errorCode === "guest_disabled" ? (

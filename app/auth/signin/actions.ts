@@ -9,11 +9,6 @@ function safeRedirectPath(raw: unknown): string {
   return raw;
 }
 
-export async function signInWithGithub(formData: FormData) {
-  const redirectTo = safeRedirectPath(formData.get("callbackUrl"));
-  await signIn("github", { redirectTo });
-}
-
 export async function signInAsGuest(formData: FormData) {
   const redirectTo = safeRedirectPath(formData.get("callbackUrl"));
   const guestAllowed =
