@@ -5,6 +5,13 @@ import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 const EXCERPT_LEN = 220;
+function isUndefinedColumnError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const message =
+    "message" in error && typeof error.message === "string" ? error.message : "";
+  const code = "code" in error && typeof error.code === "string" ? error.code : "";
+  return code === "42703" || /column .* does not exist/i.test(message);
+}
 
 export async function GET(req: Request) {
   try {
@@ -22,20 +29,47 @@ export async function GET(req: Request) {
       ? and(eq(stories.visibility, "public"), eq(stories.userId, authorOnly))
       : eq(stories.visibility, "public");
 
-    const storyRows = await db
-      .select({
-        id: stories.id,
-        userId: stories.userId,
-        title: stories.title,
-        genre: stories.genre,
-        createdAt: stories.createdAt,
-        body: stories.body,
-      })
-      .from(stories)
-      .where(whereClause)
-      .orderBy(desc(stories.createdAt))
-      .limit(limit)
-      .offset(offset);
+    const storyRows = await (async () => {
+      try {
+        return await db
+          .select({
+            id: stories.id,
+            userId: stories.userId,
+            title: stories.title,
+            genre: stories.genre,
+            createdAt: stories.createdAt,
+            body: stories.body,
+          })
+          .from(stories)
+          .where(whereClause)
+          .orderBy(desc(stories.createdAt))
+          .limit(limit)
+          .offset(offset);
+      } catch (error) {
+        if (!isUndefinedColumnError(error)) throw error;
+        console.warn(
+          "[catalog/series] Fallback query used due to schema mismatch:",
+          error,
+        );
+        const fallbackRows = await db
+          .select({
+            id: stories.id,
+            userId: stories.userId,
+            title: stories.title,
+            createdAt: stories.createdAt,
+          })
+          .from(stories)
+          .where(whereClause)
+          .orderBy(desc(stories.createdAt))
+          .limit(limit)
+          .offset(offset);
+        return fallbackRows.map((row) => ({
+          ...row,
+          genre: null as string | null,
+          body: "",
+        }));
+      }
+    })();
 
     const authorIds = [...new Set(storyRows.map((r) => r.userId))];
     const authorRows =

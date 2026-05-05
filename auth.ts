@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
+import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/db";
 import {
@@ -9,6 +10,7 @@ import {
   users,
   verificationTokens,
 } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * Auth.js rejects requests when `secret` is missing or empty (ClientFetchError
@@ -46,6 +48,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID ?? "",
       clientSecret: process.env.AUTH_GITHUB_SECRET ?? "",
+    }),
+    Credentials({
+      id: "guest",
+      name: "Guest",
+      credentials: {},
+      async authorize() {
+        const guestAllowed =
+          process.env.ALLOW_GUEST_AUTH === "true" ||
+          process.env.NODE_ENV !== "production";
+        if (!guestAllowed) return null;
+
+        const guestEmail = "guest@local.ainovel";
+        const [existing] = await db
+          .select({ id: users.id, name: users.name, email: users.email })
+          .from(users)
+          .where(eq(users.email, guestEmail))
+          .limit(1);
+        if (existing) {
+          return {
+            id: existing.id,
+            name: existing.name ?? "Guest Reader",
+            email: existing.email ?? guestEmail,
+          };
+        }
+
+        const [created] = await db
+          .insert(users)
+          .values({
+            name: "Guest Reader",
+            email: guestEmail,
+          })
+          .returning({ id: users.id, name: users.name, email: users.email });
+
+        if (!created) return null;
+        return {
+          id: created.id,
+          name: created.name ?? "Guest Reader",
+          email: created.email ?? guestEmail,
+        };
+      },
     }),
   ],
   callbacks: {
