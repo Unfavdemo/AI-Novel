@@ -37,7 +37,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         Sign in
       </h1>
       <p className="mt-1.5 text-center text-xs text-text-muted">
-        GitHub unlocks your shelf, reactions, and comments.
+        Sign in unlocks your shelf, reactions, and comments.
       </p>
 
       <div className="mt-6 flex flex-col gap-2">
@@ -54,11 +54,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         ) : (
           <div className="rounded-lg border border-gold-500/25 bg-obsidian-950/80 p-4 text-center text-sm text-text-muted">
             <p>
-              Set <code className="font-mono text-gold-400">AUTH_GITHUB_ID</code>{" "}
-              and{" "}
-              <code className="font-mono text-gold-400">AUTH_GITHUB_SECRET</code>{" "}
-              in <code className="font-mono text-gold-400">.env</code>, then
-              restart the dev server.
+              OAuth is not configured. You can continue as guest, or configure an
+              auth provider in <code className="font-mono text-gold-400">.env</code>{" "}
+              and restart the dev server.
             </p>
             {guestAllowed ? (
               <form action={signInAsGuest} className="mt-3">

@@ -24,6 +24,18 @@ export async function SiteHeader() {
             >
               Read
             </Link>
+            <Link
+              href="/customer"
+              className="rounded-md px-2 py-1 transition hover:bg-elevated hover:text-gold-300"
+            >
+              Customer
+            </Link>
+            <Link
+              href="/admin"
+              className="rounded-md px-2 py-1 transition hover:bg-elevated hover:text-gold-300"
+            >
+              Admin
+            </Link>
             {session?.user ? (
               <Link
                 href="/studio"

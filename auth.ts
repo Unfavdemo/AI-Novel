@@ -45,10 +45,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   }),
   session: { strategy: "database" },
   providers: [
-    GitHub({
-      clientId: process.env.AUTH_GITHUB_ID ?? "",
-      clientSecret: process.env.AUTH_GITHUB_SECRET ?? "",
-    }),
     Credentials({
       id: "guest",
       name: "Guest",
@@ -89,6 +85,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
+    ...(() => {
+      const githubId = process.env.AUTH_GITHUB_ID?.trim();
+      const githubSecret = process.env.AUTH_GITHUB_SECRET?.trim();
+      if (!githubId || !githubSecret) return [];
+      return [
+        GitHub({
+          clientId: githubId,
+          clientSecret: githubSecret,
+        }),
+      ];
+    })(),
   ],
   callbacks: {
     session({ session, user }) {
