@@ -4,6 +4,7 @@ import { PageShell } from "@/components/page-shell";
 import { readResponseJson } from "@/lib/read-response-json";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 export type CatalogSeriesItem = {
@@ -18,9 +19,13 @@ export type CatalogSeriesItem = {
 
 export function StoreCatalogClient() {
   const { status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<CatalogSeriesItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const showAdminLink = searchParams.get("admin") === "1";
 
   const load = useCallback(async () => {
     const res = await fetch("/api/catalog/series?limit=40");
@@ -69,14 +74,15 @@ export function StoreCatalogClient() {
           >
             Create in Studio
           </Link>
-        ) : (
-          <Link
-            href="/auth/signin?callbackUrl=/studio"
+        ) : showAdminLink ? (
+          <button
+            type="button"
+            onClick={() => router.push("/admin/login?callbackUrl=/admin")}
             className="shrink-0 self-start rounded-md border border-border-subtle bg-elevated px-2.5 py-1.5 text-xs font-medium text-text-muted transition hover:border-gold-500/30 hover:text-gold-300 sm:self-auto"
           >
-            Sign in to create
-          </Link>
-        )}
+            Admin login
+          </button>
+        ) : null}
       </div>
 
       {error ? (
