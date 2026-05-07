@@ -42,7 +42,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     verificationTokensTable: verificationTokens,
     authenticatorsTable: authenticators,
   }),
-  session: { strategy: "database" },
+  // Credentials-only apps cannot use the database session strategy (Auth.js
+  // rejects that config — clients see `{ message: "...server configuration..." }`).
+  session: { strategy: "jwt" },
   providers: [
     Credentials({
       id: "admin",
@@ -135,9 +137,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
+    session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
       }
       return session;
     },
