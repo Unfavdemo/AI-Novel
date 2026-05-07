@@ -21,7 +21,9 @@ export async function synthesizeWithProvider(
 ): Promise<{ audio: ArrayBuffer; provider: string; model: string }> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
-    throw new Error("TTS provider not configured");
+    throw new Error(
+      "TTS provider not configured: set ELEVENLABS_API_KEY (and optionally ELEVENLABS_MODEL) in your environment.",
+    );
   }
 
   const model = process.env.ELEVENLABS_MODEL ?? "eleven_multilingual_v2";
