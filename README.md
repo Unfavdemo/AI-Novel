@@ -10,6 +10,13 @@ Client-facing **pricing and five-year cost guide** (AI text + voice, plain-Engli
 
 Re-running `pnpm db:seed` deletes the demo author (`00000000-0000-4000-8000-000000000001`) and re-inserts the sample catalog (safe for local dev). If you set `CATALOG_AUTHOR_USER_ID` in `.env`, use that same UUID—or unset it—so the home catalog lists the demo series.
 
+## AI manuscript generation (Studio)
+
+To enable **Generate manuscript** in `/studio`, set the following in your `.env`:
+
+- `OPENAI_API_KEY` (required)
+- `OPENAI_MODEL` (optional; defaults to `gpt-4o-mini`)
+
 ## Getting Started
 
 First, run the development server:

@@ -20,7 +20,9 @@ export async function generateStoryWithProvider(
 ): Promise<LlmResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error("LLM provider not configured");
+    throw new Error(
+      "LLM provider not configured: set OPENAI_API_KEY (and optionally OPENAI_MODEL) in your environment.",
+    );
   }
 
   const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
