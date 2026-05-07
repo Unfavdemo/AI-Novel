@@ -61,7 +61,14 @@ export async function SiteHeader() {
                 </button>
               </form>
             </>
-          ) : null}
+          ) : (
+            <Link
+              href="/auth/signin"
+              className="rounded-md border border-border-subtle bg-elevated px-2.5 py-1 text-xs font-medium text-text-primary transition hover:border-gold-500/35 hover:text-gold-200"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </div>
     </header>
