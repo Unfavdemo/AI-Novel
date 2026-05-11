@@ -105,7 +105,7 @@ async function runStoryCrudSmoke() {
   if (!authCookie) {
     logSkip(
       "authenticated story CRUD",
-      "Set SMOKE_AUTH_COOKIE to validate full create/update/delete flow",
+      "Set SMOKE_AUTH_COOKIE to an admin session cookie (POST /api/stories is admin-only)",
     );
     return;
   }

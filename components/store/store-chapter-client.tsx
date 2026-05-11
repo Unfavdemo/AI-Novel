@@ -210,7 +210,7 @@ export function StoreChapterClient({
             <button
               type="button"
               onClick={() => void unlock()}
-              className="rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-obsidian-950"
+              className="rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-on-accent"
             >
               Unlock (stub)
             </button>

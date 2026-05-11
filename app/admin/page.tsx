@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { auth } from "@/auth";
+import { getAdminEmailLowercase, isAdminSession } from "@/lib/server/is-admin";
 import { redirect } from "next/navigation";
 
 export default async function AdminPrototypePage() {
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const adminEmail = getAdminEmailLowercase();
   if (!adminEmail) {
     redirect("/");
   }
 
   const session = await auth();
-  const isAdmin = session?.user?.email?.toLowerCase() === adminEmail;
+  const isAdmin = isAdminSession(session);
   if (!isAdmin) {
     redirect("/admin/login?callbackUrl=/admin");
   }

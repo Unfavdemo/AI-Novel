@@ -179,7 +179,7 @@ export function ControlsPanel({
         type="button"
         onClick={onGenerate}
         disabled={isGenerating}
-        className="mt-auto inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-gold-600 to-gold-400 px-4 py-2.5 text-sm font-semibold text-obsidian-950 shadow-md shadow-gold-500/15 transition hover:from-gold-500 hover:to-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-auto inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-gold-600 to-gold-400 px-4 py-2.5 text-sm font-semibold text-on-accent shadow-md shadow-gold-500/15 transition hover:from-gold-500 hover:to-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isGenerating ? "Generating…" : "Generate manuscript"}
       </button>

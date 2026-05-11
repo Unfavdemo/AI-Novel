@@ -123,7 +123,7 @@ export function SaveStoryModal({
             type="button"
             disabled={busy || !storyText.trim()}
             onClick={() => void submit()}
-            className="rounded-lg bg-gradient-to-r from-gold-600 to-gold-400 px-4 py-2 text-sm font-semibold text-obsidian-950 disabled:opacity-50"
+            className="rounded-lg bg-gradient-to-r from-gold-600 to-gold-400 px-4 py-2 text-sm font-semibold text-on-accent disabled:opacity-50"
           >
             {busy ? "Saving…" : "Save"}
           </button>

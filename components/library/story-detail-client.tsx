@@ -248,7 +248,7 @@ export function StoryDetailClient({ id }: { id: string }) {
               type="button"
               disabled={posting || !commentBody.trim()}
               onClick={() => void postComment()}
-              className="mt-2 rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-obsidian-950 disabled:opacity-50"
+              className="mt-2 rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-on-accent disabled:opacity-50"
             >
               {posting ? "Posting…" : "Post comment"}
             </button>

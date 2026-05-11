@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { requireAdmin } from "@/lib/server/require-admin";
 import { synthesizeWithProvider } from "@/lib/server/tts-provider";
 import { recordUsageEvent } from "@/lib/server/usage-accounting";
 import { NextResponse } from "next/server";
@@ -9,6 +10,9 @@ type SynthesizeBody = {
 };
 
 export async function POST(req: Request) {
+  const adminGate = await requireAdmin();
+  if (adminGate.error) return adminGate.error;
+
   let body: SynthesizeBody;
   try {
     body = (await req.json()) as SynthesizeBody;

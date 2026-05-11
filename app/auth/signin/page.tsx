@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { signInAsGuest } from "@/app/auth/signin/actions";
+import { SignInEmailForm } from "@/app/auth/signin/sign-in-email-form";
 
 type SignInPageProps = {
-  searchParams?: Promise<{ callbackUrl?: string | string[]; error?: string | string[] }>;
+  searchParams?: Promise<{
+    callbackUrl?: string | string[];
+    error?: string | string[];
+    registered?: string | string[];
+  }>;
 };
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
@@ -24,6 +29,13 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const rawError = sp.error;
   const errorCode =
     typeof rawError === "string" ? rawError : Array.isArray(rawError) ? rawError[0] : undefined;
+  const registeredRaw = sp.registered;
+  const justRegistered =
+    typeof registeredRaw === "string"
+      ? registeredRaw
+      : Array.isArray(registeredRaw)
+        ? registeredRaw[0]
+        : undefined;
 
   return (
     <div className="mx-auto flex min-h-[55vh] max-w-sm flex-col justify-center px-3 py-10 sm:px-4">
@@ -37,7 +49,34 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         Sign in unlocks your shelf, reactions, and comments.
       </p>
 
-      <div className="mt-6 flex flex-col gap-2">
+      {justRegistered === "1" ? (
+        <p className="mt-4 rounded-md border border-gold-500/25 bg-elevated px-3 py-2 text-center text-xs text-text-muted">
+          Account created. Sign in with your email and password below.
+        </p>
+      ) : null}
+
+      <div className="mt-6 flex flex-col gap-5">
+        <div>
+          <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-wide text-text-faint">
+            Email &amp; password
+          </p>
+          <SignInEmailForm callbackUrl={callbackUrl} />
+          {errorCode === "CredentialsSignin" || errorCode === "missing_credentials" ? (
+            <p className="mt-2 text-center text-xs text-red-300">
+              {errorCode === "missing_credentials"
+                ? "Enter your email and password."
+                : "Invalid email or password."}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="relative flex items-center gap-3">
+          <div className="h-px flex-1 bg-border-subtle" />
+          <span className="text-[11px] text-text-faint">or</span>
+          <div className="h-px flex-1 bg-border-subtle" />
+        </div>
+
+        <div className="flex flex-col gap-2">
         {guestAllowed ? (
           <form action={signInAsGuest}>
             <input type="hidden" name="callbackUrl" value={callbackUrl} />
@@ -75,6 +114,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         >
           Back to catalog
         </Link>
+        </div>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import {
   users,
   verificationTokens,
 } from "@/db/schema";
+import { verifyPassword } from "@/lib/password";
 import { eq } from "drizzle-orm";
 
 /**
@@ -96,6 +97,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
     Credentials({
+      id: "user",
+      name: "Account",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const emailRaw =
+          typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "";
+        const passwordRaw =
+          typeof credentials?.password === "string" ? credentials.password : "";
+        if (!emailRaw || !passwordRaw) return null;
+
+        const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+        if (adminEmail && emailRaw === adminEmail) {
+          return null;
+        }
+
+        const [row] = await db
+          .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            passwordHash: users.passwordHash,
+          })
+          .from(users)
+          .where(eq(users.email, emailRaw))
+          .limit(1);
+
+        if (!row?.passwordHash) return null;
+        const ok = await verifyPassword(passwordRaw, row.passwordHash);
+        if (!ok) return null;
+
+        return {
+          id: row.id,
+          name: row.name ?? row.email ?? "Reader",
+          email: row.email ?? emailRaw,
+        };
+      },
+    }),
+    Credentials({
       id: "guest",
       name: "Guest",
       credentials: {},
@@ -137,9 +179,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    jwt({ token, user }) {
+      if (user?.email) {
+        token.email = user.email;
+      }
+      const email =
+        typeof token.email === "string" ? token.email.trim().toLowerCase() : "";
+      const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+      token.isAdmin = Boolean(adminEmail && email && email === adminEmail);
+      return token;
+    },
     session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
+      }
+      if (session.user) {
+        session.user.isAdmin = Boolean(token.isAdmin);
       }
       return session;
     },

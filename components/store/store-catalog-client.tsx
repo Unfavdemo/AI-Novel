@@ -17,7 +17,8 @@ export type CatalogSeriesItem = {
 };
 
 export function StoreCatalogClient() {
-  const { status } = useSession();
+  const { status, data: sessionData } = useSession();
+  const showStudioCta = sessionData?.user?.isAdmin === true;
   const [items, setItems] = useState<CatalogSeriesItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +63,7 @@ export function StoreCatalogClient() {
             Serialized fiction—free previews, then unlock chapters (stub in dev).
           </p>
         </div>
-        {status === "authenticated" ? (
+        {status === "authenticated" && showStudioCta ? (
           <Link
             href="/studio"
             className="shrink-0 self-start rounded-md border border-border-subtle bg-elevated px-2.5 py-1.5 text-xs font-medium text-text-muted transition hover:border-gold-500/30 hover:text-gold-300 sm:self-auto"

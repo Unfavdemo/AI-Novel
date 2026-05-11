@@ -176,7 +176,7 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
                 {c.canReadBody ? (
                   <Link
                     href={`/store/${seriesId}/c/${c.id}`}
-                    className="rounded-md bg-gold-500/90 px-2.5 py-1 text-[11px] font-semibold text-obsidian-950"
+                    className="rounded-md bg-gold-500/90 px-2.5 py-1 text-[11px] font-semibold text-on-accent"
                   >
                     Read
                   </Link>

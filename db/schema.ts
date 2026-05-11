@@ -20,6 +20,8 @@ export const users = pgTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  /** Set only for email/password accounts; never used for admin env login alone. */
+  passwordHash: text("password_hash"),
 });
 
 export const accounts = pgTable(

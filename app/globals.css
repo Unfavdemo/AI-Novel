@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
+/* Dark default (matches app before theme script runs). Light: `html.light` from next-themes. */
 :root {
+  color-scheme: dark;
   --surface: #0b0c0f;
   --elevated: #12141a;
   --elevated-2: #181b24;
@@ -10,6 +12,42 @@
   --text-primary: #f4f1ea;
   --text-muted: #9aa0b4;
   --text-faint: #5c6378;
+
+  --obsidian-950: #050608;
+  --obsidian-900: #0b0c0f;
+  --obsidian-850: #12141a;
+  --obsidian-800: #181b24;
+  --obsidian-700: #222633;
+  --obsidian-600: #2e3344;
+
+  --selection-bg: rgba(212, 175, 55, 0.28);
+  --scrollbar-thumb: rgba(212, 175, 55, 0.22);
+  /* Text on gold / bright accent fills (same in both themes) */
+  --on-accent: #0c0b09;
+}
+
+html.light {
+  color-scheme: light;
+  --surface: #f3f1eb;
+  --elevated: #fffcf7;
+  --elevated-2: #ebe6dc;
+  --border-subtle: rgba(90, 70, 30, 0.14);
+  --accent: #9a7209;
+  --accent-muted: rgba(154, 114, 9, 0.55);
+  --text-primary: #141210;
+  --text-muted: #5a564d;
+  --text-faint: #8a8478;
+
+  --obsidian-950: #faf8f4;
+  --obsidian-900: #f2efe8;
+  --obsidian-850: #e8e4da;
+  --obsidian-800: #dcd7cc;
+  --obsidian-700: #cec8bb;
+  --obsidian-600: #b8b1a3;
+
+  --selection-bg: rgba(154, 114, 9, 0.22);
+  --scrollbar-thumb: rgba(154, 114, 9, 0.28);
+  --on-accent: #141210;
 }
 
 @theme inline {
@@ -22,13 +60,14 @@
   --color-text-primary: var(--text-primary);
   --color-text-muted: var(--text-muted);
   --color-text-faint: var(--text-faint);
+  --color-on-accent: var(--on-accent);
 
-  --color-obsidian-950: #050608;
-  --color-obsidian-900: #0b0c0f;
-  --color-obsidian-850: #12141a;
-  --color-obsidian-800: #181b24;
-  --color-obsidian-700: #222633;
-  --color-obsidian-600: #2e3344;
+  --color-obsidian-950: var(--obsidian-950);
+  --color-obsidian-900: var(--obsidian-900);
+  --color-obsidian-850: var(--obsidian-850);
+  --color-obsidian-800: var(--obsidian-800);
+  --color-obsidian-700: var(--obsidian-700);
+  --color-obsidian-600: var(--obsidian-600);
 
   --color-gold-500: #d4af37;
   --color-gold-400: #e0c15c;
@@ -43,6 +82,10 @@ html {
   color-scheme: dark;
 }
 
+html.light {
+  color-scheme: light;
+}
+
 body {
   background: var(--surface);
   color: var(--text-primary);
@@ -50,7 +93,7 @@ body {
 }
 
 ::selection {
-  background: rgba(212, 175, 55, 0.28);
+  background: var(--selection-bg);
   color: var(--text-primary);
 }
 
@@ -59,9 +102,17 @@ body {
   height: 8px;
 }
 .manuscript-editor::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.22);
+  background: var(--scrollbar-thumb);
   border-radius: 999px;
 }
 .manuscript-editor::-webkit-scrollbar-track {
   background: transparent;
+}
+
+.manuscript-editor {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+html.light .manuscript-editor {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06) inset;
 }

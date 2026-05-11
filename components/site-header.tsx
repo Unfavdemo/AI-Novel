@@ -1,9 +1,12 @@
 import { signOutAction } from "@/app/actions/auth";
 import { auth } from "@/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { isAdminSession } from "@/lib/server/is-admin";
 import Link from "next/link";
 
 export async function SiteHeader() {
   const session = await auth();
+  const showStudio = isAdminSession(session);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border-subtle bg-obsidian-950/90 backdrop-blur-md">
@@ -30,7 +33,7 @@ export async function SiteHeader() {
             >
               Customer
             </Link>
-            {session?.user ? (
+            {showStudio ? (
               <Link
                 href="/studio"
                 className="rounded-md px-2 py-1 transition hover:bg-elevated hover:text-gold-300"
@@ -47,6 +50,7 @@ export async function SiteHeader() {
           </nav>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
           {session?.user ? (
             <>
               <span className="hidden max-w-[12rem] truncate text-xs text-text-muted sm:inline">

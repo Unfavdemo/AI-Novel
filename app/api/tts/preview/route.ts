@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { requireAdmin } from "@/lib/server/require-admin";
 import { synthesizeWithProvider } from "@/lib/server/tts-provider";
 import { recordUsageEvent } from "@/lib/server/usage-accounting";
 import { NextResponse } from "next/server";
@@ -10,6 +11,9 @@ type PreviewBody = {
 const PREVIEW_TEXT = "The city held its breath, and the story began again.";
 
 export async function POST(req: Request) {
+  const adminGate = await requireAdmin();
+  if (adminGate.error) return adminGate.error;
+
   let body: PreviewBody;
   try {
     body = (await req.json()) as PreviewBody;

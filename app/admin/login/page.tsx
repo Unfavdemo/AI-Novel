@@ -31,7 +31,12 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
         Admin
       </h1>
       <p className="mt-1.5 text-center text-xs text-text-muted">
-        Hidden login for internal use.
+        Environment-configured administrator only. There is no self-service way to create an admin
+        account; readers use{" "}
+        <Link href="/auth/register" className="text-gold-400/90 underline-offset-4 hover:underline">
+          normal registration
+        </Link>
+        .
       </p>
 
       <form action={signInAsAdmin} className="mt-6 flex flex-col gap-3">
@@ -59,7 +64,7 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
 
         <button
           type="submit"
-          className="mt-1 w-full rounded-md border border-gold-500/40 bg-gradient-to-r from-gold-600/90 to-gold-400/90 px-3 py-2.5 text-sm font-semibold text-obsidian-950 transition hover:from-gold-500 hover:to-gold-300"
+          className="mt-1 w-full rounded-md border border-gold-500/40 bg-gradient-to-r from-gold-600/90 to-gold-400/90 px-3 py-2.5 text-sm font-semibold text-on-accent transition hover:from-gold-500 hover:to-gold-300"
         >
           Sign in
         </button>

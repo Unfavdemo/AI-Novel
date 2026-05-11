@@ -1,5 +1,5 @@
-import { auth } from "@/auth";
 import { generateStoryWithProvider } from "@/lib/server/llm-provider";
+import { requireAdmin } from "@/lib/server/require-admin";
 import {
   passesStoryQualityChecks,
   STORY_PROMPT_TEMPLATE_VERSION,
@@ -26,6 +26,9 @@ function parseNumber(v: unknown, fallback: number): number {
 }
 
 export async function POST(req: Request) {
+  const adminGate = await requireAdmin();
+  if (adminGate.error) return adminGate.error;
+
   let body: GenerateBody;
   try {
     body = (await req.json()) as GenerateBody;
@@ -45,7 +48,6 @@ export async function POST(req: Request) {
   let lastError: unknown;
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
-      const session = await auth();
       const result = await generateStoryWithProvider(params);
       const quality = passesStoryQualityChecks(result.text);
       if (!quality.ok) {
@@ -60,7 +62,7 @@ export async function POST(req: Request) {
       }
 
       await recordUsageEvent({
-        userId: session?.user?.id ?? null,
+        userId: adminGate.session.user.id,
         capability: "llm_generation",
         provider: result.provider,
         model: result.model,

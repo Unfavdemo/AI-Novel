@@ -1,11 +1,12 @@
 import { db } from "@/db";
 import { chapters, stories } from "@/db/schema";
-import { requireUser } from "@/lib/require-user";
+import { requireAdmin } from "@/lib/server/require-admin";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { userId, error } = await requireUser();
-  if (error) return error;
+  const adminGate = await requireAdmin();
+  if (adminGate.error) return adminGate.error;
+  const userId = adminGate.session.user.id;
 
   let body: unknown;
   try {
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     const [storyRow] = await tx
       .insert(stories)
       .values({
-        userId: userId!,
+        userId,
         title,
         body: text,
         visibility,
