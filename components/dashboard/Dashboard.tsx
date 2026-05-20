@@ -1,97 +1,75 @@
 "use client";
 
-import { IntrigueMeter } from "@/components/dashboard/IntrigueMeter";
-import { SaveStoryModal } from "@/components/dashboard/SaveStoryModal";
-import { ManuscriptEngine } from "@/components/dashboard/ManuscriptEngine";
+import { AdminWorkspace } from "@/components/admin/AdminWorkspace";
+import { AgentSaveModal } from "@/components/admin/AgentSaveModal";
 import { SplitTrackTimeline } from "@/components/timeline/SplitTrackTimeline";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { VoiceConsole } from "@/components/voice/VoiceConsole";
-import { useManuscriptState } from "@/hooks/useManuscriptState";
+import type { StoryListingMetadata } from "@/lib/api/story-listing";
 import { useVoiceSegments } from "@/hooks/useVoiceSegments";
-import { useSession } from "next-auth/react";
+import { CREATOR_PRODUCT_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function Dashboard() {
   const router = useRouter();
-  const { status } = useSession();
   const [saveOpen, setSaveOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [cast, setCast] = useState<Record<string, string>>({});
-  const {
-    controls,
-    setPartial,
-    storyText,
-    setStoryText,
-    isGenerating,
-    error,
-    generate,
-  } = useManuscriptState();
-  const segments = useVoiceSegments(storyText);
+  const [timelineText, setTimelineText] = useState("");
+  const [draftForSave, setDraftForSave] = useState("");
+  const [agentIdForSave, setAgentIdForSave] = useState("");
+  const [metadataForSave, setMetadataForSave] = useState<StoryListingMetadata | null>(
+    null,
+  );
+  const segments = useVoiceSegments(timelineText);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(1200px_circle_at_20%_-10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(900px_circle_at_100%_0%,rgba(90,110,180,0.07),transparent_50%)]">
-      <div className="border-b border-border-subtle bg-obsidian-950/30 px-3 py-2.5 sm:px-4 md:px-5">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+    <div className="studio-page-bg flex min-h-screen flex-col">
+      <div className="border-b border-border-subtle bg-elevated/80 px-3 py-2.5 sm:px-4 md:px-5">
+        <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-3">
           <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-500/90">
+              Production
+            </p>
             <h1 className="text-lg font-semibold tracking-tight text-text-primary md:text-xl">
-              Novel &amp; Audiobook studio
+              {CREATOR_PRODUCT_NAME}
             </h1>
             <p className="mt-0.5 text-xs text-text-muted md:text-sm">
-              Manuscript engine and split-track casting.{" "}
-              <Link href="/library" className="text-gold-400/90 hover:underline">
-                Open library
+              Draft with AI chat, review each book in its own agent, and publish to your
+              catalog.{" "}
+              <Link href="/library" className="text-accent hover:underline">
+                Library
               </Link>
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {status === "authenticated" ? (
-              <button
-                type="button"
-                onClick={() => setSaveOpen(true)}
-                disabled={!storyText.trim()}
-                className="rounded-lg border border-gold-500/40 bg-gold-500/10 px-4 py-2 text-sm font-semibold text-gold-200 transition hover:bg-gold-500/15 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Save to library
-              </button>
-            ) : (
-              <Link
-                href="/auth/signin"
-                className="rounded-lg border border-border-subtle px-4 py-2 text-sm text-text-muted transition hover:border-gold-500/35 hover:text-text-primary"
-              >
-                Sign in to save
-              </Link>
-            )}
+          <div className="flex flex-wrap items-center gap-2">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => setVoiceOpen(true)}
+              className="rounded-lg border border-border-subtle px-3 py-2 text-sm font-medium text-text-primary transition hover:border-gold-500/35"
+            >
+              Narration
+            </button>
           </div>
         </div>
       </div>
 
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-3 px-3 py-4 sm:px-4 md:px-5">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_1fr] lg:items-start">
-          <IntrigueMeter storyText={storyText} />
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setVoiceOpen(true)}
-              className="rounded-lg border border-border-subtle px-4 py-2 text-sm font-medium text-text-primary transition hover:border-gold-500/35"
-            >
-              Voice console
-            </button>
-          </div>
-        </div>
-
-        <div className="grid min-h-0 flex-1 grid-rows-[1fr_auto] gap-4">
-          <ManuscriptEngine
-            controls={controls}
-            onControlsChange={setPartial}
-            storyText={storyText}
-            onStoryTextChange={setStoryText}
-            onGenerate={generate}
-            isGenerating={isGenerating}
-            error={error}
-          />
+      <main className="mx-auto flex w-full max-w-[90rem] flex-1 flex-col gap-4 px-3 py-4 sm:px-4 md:px-5">
+        <AdminWorkspace
+          onDraftChange={setTimelineText}
+          onRequestSave={({ agentId, draftBody, metadata }) => {
+            setAgentIdForSave(agentId);
+            setDraftForSave(draftBody);
+            setMetadataForSave(metadata);
+            setSaveOpen(true);
+          }}
+        />
+        {timelineText.trim() ? (
           <SplitTrackTimeline segments={segments} castMapping={cast} />
-        </div>
+        ) : null}
       </main>
 
       <VoiceConsole
@@ -104,11 +82,12 @@ export function Dashboard() {
         }
       />
 
-      <SaveStoryModal
+      <AgentSaveModal
         open={saveOpen}
         onClose={() => setSaveOpen(false)}
-        storyText={storyText}
-        controls={controls}
+        agentId={agentIdForSave}
+        draftBody={draftForSave}
+        initialMetadata={metadataForSave}
         onSaved={(id) => router.push(`/library/${id}`)}
       />
     </div>

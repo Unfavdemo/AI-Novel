@@ -17,6 +17,10 @@ export async function GET(req: Request) {
       id: stories.id,
       userId: stories.userId,
       title: stories.title,
+      description: stories.description,
+      coverImageUrl: stories.coverImageUrl,
+      genre: stories.genre,
+      categories: stories.categories,
       createdAt: stories.createdAt,
     })
     .from(stories)
@@ -42,6 +46,10 @@ export async function GET(req: Request) {
   const rows = storyRows.map((r) => ({
     id: r.id,
     title: r.title,
+    description: r.description,
+    coverImageUrl: r.coverImageUrl,
+    genre: r.genre,
+    categories: r.categories,
     createdAt: r.createdAt,
     authorName: authorById.get(r.userId)?.name ?? null,
     authorImage: authorById.get(r.userId)?.image ?? null,

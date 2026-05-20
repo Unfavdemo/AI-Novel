@@ -1,11 +1,11 @@
-import { auth } from "@/auth";
+import { safeAuth } from "@/lib/server/safe-auth";
 import { db } from "@/db";
 import { usageEvents } from "@/db/schema";
 import { and, eq, gte, lt, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
-  const session = await auth();
+  const session = await safeAuth();
   const userId = session?.user?.id;
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

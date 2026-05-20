@@ -11,9 +11,11 @@ The analysis is grounded in the current project state from `README.md`, `docs/CL
 ## CCC.1.1 - Problem Statement Document
 
 ### Clear Description Of The Problem
-AI-Novel has a clear product direction (serialized fiction creation and chapter-by-chapter consumption), but its highest-risk production paths are still scaffolded with placeholders and stubs. The result is a capability gap between:
-- Intended business behavior (real paid unlocks, reliable AI writing and voice generation at scale)
-- Current implementation maturity (stubbed chapter purchase flow, placeholder LLM/TTS services, and no automated test suite)
+AI-Novel has a clear product direction (serialized fiction creation and chapter-by-chapter consumption). Remaining gaps are concentrated in production payments and native mobile shells. Current maturity includes:
+- OpenAI-backed manuscript generation and multi-turn `/api/ai/chat` in the admin workspace
+- ElevenLabs-backed TTS with multilingual model and tier-aware character budgets
+- Dual-column `/studio` workspace (chat + isolated agent drafts)
+- Stubbed chapter purchase flow pending Stripe hardening
 
 ### Context (Who, Where, When)
 - **Who:** A primary creator (private production studio owner) and reader/listener end users.
@@ -34,8 +36,8 @@ AI-Novel has a clear product direction (serialized fiction creation and chapter-
   - NextAuth + Drizzle adapter for authentication and sessions.
   - PostgreSQL + Drizzle ORM for persistent domain and auth tables.
 - Service readiness constraints:
-  - LLM generation currently uses a placeholder function and simulated delay.
-  - TTS preview/synthesis functions are placeholder implementations with TODOs.
+  - LLM and TTS use live HTTP providers (OpenAI, ElevenLabs); quality and cost scale with usage.
+  - Admin workspace requires `pnpm db:migrate` for `studio_*` tables.
   - Chapter unlock path inserts unlock records with `source: "stub"` and depends on `ALLOW_STUB_PURCHASES` behavior.
 - Operational constraints:
   - Deployment and behavior are environment-driven (`DATABASE_URL`, auth keys, feature flags).

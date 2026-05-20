@@ -29,6 +29,20 @@
       "when": 1778509380260,
       "tag": "0003_user_password_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778600000000,
+      "tag": "0004_studio_workspace",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778700000000,
+      "tag": "0005_story_listing_metadata",
+      "breakpoints": true
     }
   ]
 }

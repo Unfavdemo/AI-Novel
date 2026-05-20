@@ -1,11 +1,11 @@
-import { auth } from "@/auth";
+import { safeAuth } from "@/lib/server/safe-auth";
 import { NextResponse } from "next/server";
 
 export async function requireUser(): Promise<
   | { userId: string; error: null }
   | { userId: null; error: NextResponse }
 > {
-  const session = await auth();
+  const session = await safeAuth();
   const userId = session?.user?.id;
   if (!userId) {
     return {

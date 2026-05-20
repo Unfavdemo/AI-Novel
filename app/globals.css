@@ -24,6 +24,9 @@
   --scrollbar-thumb: rgba(212, 175, 55, 0.22);
   /* Text on gold / bright accent fills (same in both themes) */
   --on-accent: #0c0b09;
+
+  --studio-glow-a: rgba(212, 175, 55, 0.08);
+  --studio-glow-b: rgba(90, 110, 180, 0.07);
 }
 
 html.light {
@@ -48,6 +51,9 @@ html.light {
   --selection-bg: rgba(154, 114, 9, 0.22);
   --scrollbar-thumb: rgba(154, 114, 9, 0.28);
   --on-accent: #141210;
+
+  --studio-glow-a: rgba(154, 114, 9, 0.1);
+  --studio-glow-b: rgba(70, 100, 160, 0.06);
 }
 
 @theme inline {
@@ -115,4 +121,24 @@ body {
 
 html.light .manuscript-editor {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06) inset;
+}
+
+.studio-page-bg {
+  background:
+    radial-gradient(1200px circle at 20% -10%, var(--studio-glow-a), transparent 55%),
+    radial-gradient(900px circle at 100% 0%, var(--studio-glow-b), transparent 50%),
+    var(--surface);
+}
+
+/* Reader / manuscript text surfaces — theme-aware */
+.reader-surface {
+  background: var(--elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.input-surface {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
 }

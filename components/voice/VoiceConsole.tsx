@@ -38,14 +38,14 @@ export function VoiceConsole({
         role="dialog"
         aria-modal="true"
         aria-labelledby="voice-console-title"
-        className="flex h-full w-full max-w-md flex-col rounded-xl border border-border-subtle bg-obsidian-950 shadow-2xl"
+        className="flex h-full w-full max-w-md flex-col rounded-xl border border-border-subtle bg-elevated shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
           <h2
             id="voice-console-title"
             className="text-sm font-semibold text-text-primary"
           >
-            Voice console
+            Narration & casting
           </h2>
           <button
             type="button"
@@ -56,8 +56,8 @@ export function VoiceConsole({
           </button>
         </div>
         <p className="border-b border-border-subtle px-4 py-2 text-xs text-text-muted">
-          Assign casting presets per detected speaker tag. Preview uses the
-          configured TTS provider.
+          Assign regional accent presets per speaker. Preview uses ElevenLabs
+          multilingual narration (configure voice IDs in .env).
         </p>
         <div className="flex-1 overflow-y-auto px-4 py-3">
           {speakers.length === 0 ? (
@@ -69,7 +69,7 @@ export function VoiceConsole({
           ) : (
             <ul className="flex flex-col gap-4">
               {speakers.map((sid) => {
-                const voiceId = cast[sid] ?? sid;
+                const castPreset = cast[sid] ?? sid;
                 return (
                   <li
                     key={sid}
@@ -81,23 +81,23 @@ export function VoiceConsole({
                           {sid}
                         </p>
                         <p className="text-[11px] text-text-faint">
-                          {getVoiceCardLabel(sid)}
+                          {getVoiceCardLabel(castPreset in VOICE_REGISTRY ? castPreset : sid)}
                         </p>
                       </div>
                       <button
                         type="button"
-                        className="shrink-0 rounded border border-gold-500/35 px-2 py-1 text-[10px] font-medium text-gold-200 hover:border-gold-400/60"
-                        onClick={() => void previewVoice(voiceId)}
+                        className="shrink-0 rounded border border-gold-500/35 px-2 py-1 text-[10px] font-medium text-accent hover:border-gold-400/60"
+                        onClick={() => void previewVoice(castPreset)}
                       >
                         Preview
                       </button>
                     </div>
                     <label className="mt-2 block text-[10px] font-medium uppercase tracking-wide text-text-faint">
-                      Cast voice
+                      Cast voice (accent preset)
                     </label>
                     <select
-                      className="mt-1 w-full rounded-md border border-border-subtle bg-obsidian-950/80 px-2 py-1.5 text-xs text-text-primary"
-                      value={voiceId}
+                      className="mt-1 w-full rounded-md border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary"
+                      value={castPreset in VOICE_REGISTRY ? castPreset : "narrator"}
                       onChange={(e) => onCastChange(sid, e.target.value)}
                     >
                       {VOICE_OPTION_IDS.map((vid) => (

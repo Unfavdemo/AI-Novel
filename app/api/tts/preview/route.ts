@@ -1,5 +1,6 @@
-import { auth } from "@/auth";
+import { safeAuth } from "@/lib/server/safe-auth";
 import { requireAdmin } from "@/lib/server/require-admin";
+import { resolveElevenLabsVoiceId } from "@/lib/server/resolve-voice-id";
 import { synthesizeWithProvider } from "@/lib/server/tts-provider";
 import { recordUsageEvent } from "@/lib/server/usage-accounting";
 import { NextResponse } from "next/server";
@@ -21,14 +22,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const voiceId = typeof body.voiceId === "string" ? body.voiceId.trim() : "";
-  if (!voiceId) {
+  const rawVoice = typeof body.voiceId === "string" ? body.voiceId.trim() : "";
+  if (!rawVoice) {
     return NextResponse.json({ error: "voiceId is required" }, { status: 400 });
   }
 
   try {
-    const session = await auth();
-    const result = await synthesizeWithProvider({ voiceId, text: PREVIEW_TEXT });
+    const session = await safeAuth();
+    const voiceId = resolveElevenLabsVoiceId(rawVoice);
+    const result = await synthesizeWithProvider({
+      voiceId,
+      text: PREVIEW_TEXT,
+      userId: session?.user?.id ?? null,
+    });
     await recordUsageEvent({
       userId: session?.user?.id ?? null,
       capability: "tts_synthesis",

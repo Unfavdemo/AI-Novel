@@ -131,7 +131,7 @@ export function StoreChapterClient({
   if (error && !chapter) {
     return (
       <PageShell max="reader">
-        <p className="text-sm text-red-300">{error}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         <Link
           href={`/store/${seriesId}`}
           className="mt-3 inline-block text-sm text-gold-400"
@@ -200,11 +200,11 @@ export function StoreChapterClient({
               ? ` Price: $${(chapter.priceCents / 100).toFixed(2)}.`
               : ""}
           </p>
-          <pre className="whitespace-pre-wrap rounded-lg border border-border-subtle bg-obsidian-950/70 p-3 font-serif text-[13px] leading-relaxed text-text-muted">
+          <pre className="reader-surface whitespace-pre-wrap rounded-lg p-3 font-serif text-[13px] leading-relaxed text-text-muted">
             {teaser}
           </pre>
           {unlockError ? (
-            <p className="text-xs text-red-300">{unlockError}</p>
+            <p className="text-xs text-red-600 dark:text-red-400">{unlockError}</p>
           ) : null}
           <div className="flex flex-wrap gap-2">
             <button
@@ -212,7 +212,7 @@ export function StoreChapterClient({
               onClick={() => void unlock()}
               className="rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-on-accent"
             >
-              Unlock (stub)
+              Unlock chapter
             </button>
             <Link
               href="/auth/signin"
@@ -224,7 +224,7 @@ export function StoreChapterClient({
         </div>
       ) : chapter?.body ? (
         <div className="prose prose-invert mt-4 max-w-none">
-          <pre className="whitespace-pre-wrap rounded-lg border border-border-subtle bg-obsidian-950/70 p-3 font-serif text-[15px] leading-[1.65] text-text-primary sm:p-4 sm:text-[15px]">
+          <pre className="reader-surface whitespace-pre-wrap rounded-lg p-3 font-serif text-[15px] leading-[1.65] text-text-primary sm:p-4 sm:text-[15px]">
             {chapter.body}
           </pre>
         </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signInAsGuest } from "@/app/auth/signin/actions";
 import { SignInEmailForm } from "@/app/auth/signin/sign-in-email-form";
+import { AuthCard } from "@/components/layout/auth-card";
 
 type SignInPageProps = {
   searchParams?: Promise<{
@@ -38,31 +39,34 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         : undefined;
 
   return (
-    <div className="mx-auto flex min-h-[55vh] max-w-sm flex-col justify-center px-3 py-10 sm:px-4">
-      <p className="text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-500/90">
-        Atelier
-      </p>
-      <h1 className="mt-1.5 text-center text-xl font-semibold tracking-tight text-text-primary">
-        Sign in
-      </h1>
-      <p className="mt-1.5 text-center text-xs text-text-muted">
-        Sign in unlocks your shelf, reactions, and comments.
-      </p>
-
+    <AuthCard
+      title="Welcome back"
+      description="Sign in to unlock chapters, save your shelf, and join story discussions."
+      footer={
+        <div className="flex flex-col gap-2 text-center text-xs">
+          <Link href="/auth/register" className="font-medium text-accent hover:underline">
+            Create an account
+          </Link>
+          <Link href="/" className="text-text-faint hover:text-text-muted hover:underline">
+            Browse without signing in
+          </Link>
+        </div>
+      }
+    >
       {justRegistered === "1" ? (
-        <p className="mt-4 rounded-md border border-gold-500/25 bg-elevated px-3 py-2 text-center text-xs text-text-muted">
+        <p className="mb-4 rounded-md border border-gold-500/25 bg-surface px-3 py-2 text-center text-xs text-text-muted">
           Account created. Sign in with your email and password below.
         </p>
       ) : null}
 
-      <div className="mt-6 flex flex-col gap-5">
+      <div className="flex flex-col gap-5">
         <div>
           <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-wide text-text-faint">
             Email &amp; password
           </p>
           <SignInEmailForm callbackUrl={callbackUrl} />
           {errorCode === "CredentialsSignin" || errorCode === "missing_credentials" ? (
-            <p className="mt-2 text-center text-xs text-red-300">
+            <p className="mt-2 text-center text-xs text-red-600 dark:text-red-400">
               {errorCode === "missing_credentials"
                 ? "Enter your email and password."
                 : "Invalid email or password."}
@@ -76,46 +80,23 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           <div className="h-px flex-1 bg-border-subtle" />
         </div>
 
-        <div className="flex flex-col gap-2">
         {guestAllowed ? (
           <form action={signInAsGuest}>
             <input type="hidden" name="callbackUrl" value={callbackUrl} />
             <button
               type="submit"
-              className="w-full rounded-md border border-border-subtle bg-elevated px-3 py-2.5 text-sm font-semibold text-text-primary transition hover:border-gold-500/40 hover:bg-elevated-2"
+              className="w-full rounded-lg border border-border-subtle bg-surface px-3 py-2.5 text-sm font-semibold text-text-primary transition hover:border-gold-500/40 hover:bg-elevated"
             >
-              Continue as Guest
+              Continue as guest
             </button>
           </form>
-        ) : (
-          <div className="rounded-lg border border-gold-500/25 bg-obsidian-950/80 p-4 text-center text-sm text-text-muted">
-            <p>
-              Guest sign-in is disabled in this environment. Set{" "}
-              <code className="font-mono text-gold-400">ALLOW_GUEST_AUTH=true</code> in{" "}
-              <code className="font-mono text-gold-400">.env</code> and restart the dev
-              server.
-            </p>
-          </div>
-        )}
+        ) : null}
         {errorCode === "guest_disabled" ? (
-          <p className="text-center text-xs text-red-300">
-            Guest sign-in is disabled in this environment.
+          <p className="text-center text-xs text-red-600 dark:text-red-400">
+            Guest access is not enabled on this deployment.
           </p>
         ) : null}
-        <Link
-          href="/library"
-          className="text-center text-sm text-gold-400/90 underline-offset-4 hover:underline"
-        >
-          Browse public library without signing in
-        </Link>
-        <Link
-          href="/"
-          className="text-center text-xs text-text-faint hover:text-text-muted"
-        >
-          Back to catalog
-        </Link>
-        </div>
       </div>
-    </div>
+    </AuthCard>
   );
 }

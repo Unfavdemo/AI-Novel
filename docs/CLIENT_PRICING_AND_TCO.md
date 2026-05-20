@@ -50,7 +50,7 @@ Those two bills **do not** work the same way. This guide explains both, then sho
 
 ## Where the money goes (when the product is finished)
 
-Today the app still uses **fake stand-ins** instead of real paid services—one for **writing**, one for **voices**. When it is finished, picture **her production pipeline** like this (customers later hit a separate reader/listener experience that plays what she published):
+The app uses **live OpenAI writing** and **ElevenLabs read-aloud** in development. For budgeting, assume **ElevenLabs Free tier** during testing (`ELEVENLABS_PLAN=free`, ~10k characters/month in-app cap) and **Starter (~$5/month)** after launch for higher limits. Picture **her production pipeline** like this (customers later hit a separate reader/listener experience that plays what she published):
 
 ```mermaid
 flowchart LR

@@ -1,44 +1,89 @@
 "use client";
 
+import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/page-shell";
+import { StoryCover } from "@/components/story/story-cover";
+import { parseCategoriesJson } from "@/lib/story-listing-parse";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-type MineItem = {
+type LibraryListItem = {
   id: string;
   title: string;
-  visibility: "private" | "public";
+  coverImageUrl: string | null;
+  description: string | null;
+  genre: string | null;
+  categories: string | null;
   createdAt: string;
   likesCount: number;
   dislikesCount: number;
-};
-
-type PublicItem = {
-  id: string;
-  title: string;
-  createdAt: string;
-  authorName: string | null;
-  likesCount: number;
-  dislikesCount: number;
+  meta: string;
 };
 
 export default function LibraryPage() {
   const { status } = useSession();
-  const [tab, setTab] = useState<"mine" | "public">("public");
-  const [mine, setMine] = useState<MineItem[]>([]);
-  const [pub, setPub] = useState<PublicItem[]>([]);
+  const [tab, setTab] = useState<"mine" | "public">("mine");
+  const [mine, setMine] = useState<LibraryListItem[]>([]);
+  const [pub, setPub] = useState<LibraryListItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const mapItem = (
+    s: {
+      id: string;
+      title: string;
+      coverImageUrl?: string | null;
+      description?: string | null;
+      genre?: string | null;
+      categories?: string | null;
+      createdAt: string;
+      likesCount: number;
+      dislikesCount: number;
+    },
+    meta: string,
+  ): LibraryListItem => ({
+    id: s.id,
+    title: s.title,
+    coverImageUrl: s.coverImageUrl ?? null,
+    description: s.description ?? null,
+    genre: s.genre ?? null,
+    categories: s.categories ?? null,
+    createdAt: s.createdAt,
+    likesCount: s.likesCount,
+    dislikesCount: s.dislikesCount,
+    meta,
+  });
+
   const loadPublic = useCallback(async () => {
     const res = await fetch("/api/stories/public?limit=30");
-    const data = (await res.json()) as { items?: PublicItem[]; error?: string };
+    const data = (await res.json()) as {
+      items?: Array<{
+        id: string;
+        title: string;
+        coverImageUrl?: string | null;
+        description?: string | null;
+        genre?: string | null;
+        categories?: string | null;
+        createdAt: string;
+        authorName: string | null;
+        likesCount: number;
+        dislikesCount: number;
+      }>;
+      error?: string;
+    };
     if (!res.ok) {
       setError(data.error ?? "Could not load public stories");
       return;
     }
-    setPub(data.items ?? []);
+    setPub(
+      (data.items ?? []).map((s) =>
+        mapItem(
+          s,
+          `${s.authorName ?? "Author"} · ${new Date(s.createdAt).toLocaleDateString()}`,
+        ),
+      ),
+    );
   }, []);
 
   const loadMine = useCallback(async () => {
@@ -47,12 +92,33 @@ export default function LibraryPage() {
       setMine([]);
       return;
     }
-    const data = (await res.json()) as { items?: MineItem[]; error?: string };
+    const data = (await res.json()) as {
+      items?: Array<{
+        id: string;
+        title: string;
+        visibility: string;
+        coverImageUrl?: string | null;
+        description?: string | null;
+        genre?: string | null;
+        categories?: string | null;
+        createdAt: string;
+        likesCount: number;
+        dislikesCount: number;
+      }>;
+      error?: string;
+    };
     if (!res.ok) {
       setError(data.error ?? "Could not load your shelf");
       return;
     }
-    setMine(data.items ?? []);
+    setMine(
+      (data.items ?? []).map((s) =>
+        mapItem(
+          s,
+          `${s.visibility} · ${new Date(s.createdAt).toLocaleDateString()}`,
+        ),
+      ),
+    );
   }, []);
 
   useEffect(() => {
@@ -70,37 +136,14 @@ export default function LibraryPage() {
     };
   }, [status, loadPublic, loadMine]);
 
-  const list =
-    tab === "public"
-      ? pub.map((s) => ({
-          key: s.id,
-          href: `/library/${s.id}`,
-          title: s.title,
-          meta: `${s.authorName ?? "Author"} · ${new Date(s.createdAt).toLocaleDateString()}`,
-          likes: s.likesCount,
-          dislikes: s.dislikesCount,
-        }))
-      : mine.map((s) => ({
-          key: s.id,
-          href: `/library/${s.id}`,
-          title: s.title,
-          meta: `${s.visibility} · ${new Date(s.createdAt).toLocaleDateString()}`,
-          likes: s.likesCount,
-          dislikes: s.dislikesCount,
-        }));
+  const list = tab === "public" ? pub : mine;
 
   return (
     <PageShell>
-      <div className="flex flex-col gap-2 border-b border-border-subtle pb-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-text-primary sm:text-2xl">
-            Library
-          </h1>
-          <p className="mt-0.5 text-xs text-text-muted sm:text-[13px]">
-            Your drafts and the public catalog.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Library"
+        description="Your saved manuscripts with covers, descriptions, and listing details."
+      />
 
       <div className="mt-3 flex gap-1 border-b border-border-subtle">
         <button
@@ -108,7 +151,7 @@ export default function LibraryPage() {
           onClick={() => setTab("mine")}
           className={`border-b-2 px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
             tab === "mine"
-              ? "border-gold-500 text-gold-300"
+              ? "border-gold-500 text-accent"
               : "border-transparent text-text-muted hover:text-text-primary"
           }`}
         >
@@ -119,17 +162,17 @@ export default function LibraryPage() {
           onClick={() => setTab("public")}
           className={`border-b-2 px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
             tab === "public"
-              ? "border-gold-500 text-gold-300"
+              ? "border-gold-500 text-accent"
               : "border-transparent text-text-muted hover:text-text-primary"
           }`}
         >
-          Public stacks
+          Public catalog
         </button>
       </div>
 
       {tab === "mine" && status !== "authenticated" ? (
         <p className="mt-4 rounded-md border border-border-subtle bg-elevated/60 p-3 text-xs text-text-muted sm:text-sm">
-          <Link href="/auth/signin" className="font-medium text-gold-400 underline">
+          <Link href="/auth/signin" className="font-medium text-accent underline">
             Sign in
           </Link>{" "}
           to see manuscripts saved to your private shelf.
@@ -137,35 +180,51 @@ export default function LibraryPage() {
       ) : null}
 
       {error ? (
-        <p className="mt-4 text-sm text-red-300">{error}</p>
+        <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>
       ) : loading ? (
         <p className="mt-4 text-sm text-text-muted">Loading…</p>
       ) : list.length === 0 ? (
         <p className="mt-4 text-sm text-text-muted">
           {tab === "mine"
-            ? "No saved manuscripts yet. Save from the studio."
+            ? "No saved manuscripts yet. Save from Creator Studio with Regenerate + cover."
             : "No public stories yet."}
         </p>
       ) : (
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-          {list.map((s) => (
-            <li key={s.key}>
-              <Link
-                href={s.href}
-                className="flex h-full flex-col rounded-lg border border-border-subtle bg-elevated/50 p-3 transition hover:border-gold-500/30 hover:bg-elevated"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <span className="line-clamp-2 text-sm font-medium leading-snug text-text-primary">
-                    {s.title}
-                  </span>
-                  <span className="shrink-0 text-[10px] tabular-nums text-text-faint">
-                    +{s.likes} / −{s.dislikes}
-                  </span>
-                </div>
-                <p className="mt-1.5 text-[11px] text-text-muted">{s.meta}</p>
-              </Link>
-            </li>
-          ))}
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {list.map((s) => {
+            const cats = parseCategoriesJson(s.categories);
+            return (
+              <li key={s.id}>
+                <Link
+                  href={`/library/${s.id}`}
+                  className="flex h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-elevated/50 transition hover:border-gold-500/30 hover:bg-elevated hover:shadow-sm"
+                >
+                  <StoryCover title={s.title} coverImageUrl={s.coverImageUrl} />
+                  <div className="flex flex-1 flex-col p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="line-clamp-2 text-sm font-semibold leading-snug text-text-primary">
+                        {s.title}
+                      </span>
+                      <span className="shrink-0 text-[10px] tabular-nums text-text-faint">
+                        +{s.likesCount}
+                      </span>
+                    </div>
+                    {s.description ? (
+                      <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-text-muted">
+                        {s.description}
+                      </p>
+                    ) : null}
+                    <p className="mt-1.5 text-[11px] text-text-faint">{s.meta}</p>
+                    {(s.genre || cats.length > 0) && (
+                      <p className="mt-1 text-[10px] text-text-faint">
+                        {[s.genre, ...cats.slice(0, 2)].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </PageShell>

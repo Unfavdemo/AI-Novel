@@ -13,9 +13,12 @@
 | T-02 | Sprint 1 | Reader unlock reliability | Refactor unlock endpoint to support verified source values beyond `stub` | Backend | Dev | Todo | `chapter_unlocks.source` supports production path usage without breaking reads |
 | T-03 | Sprint 1 | Reader unlock reliability | Add integration tests for `locked/preview/unlocked/owner` access transitions | QA/Backend | Dev | Todo | Tests validate all chapter access states and expected status codes |
 | T-04 | Sprint 1 | Product owner visibility | Add unlock-flow observability events and error taxonomy | Backend/Ops | Dev | Todo | Errors are classified and traceable in logs for unlock attempts |
-| T-05 | Sprint 2 | Creator content quality | Replace placeholder text generation with provider-backed server implementation | AI/Backend | Dev | Todo | Generation endpoint returns real model output with retries/timeouts |
-| T-06 | Sprint 2 | Creator content quality | Add prompt template versioning and output quality checks | AI | Dev | Todo | Quality rubric pass rate reaches agreed threshold on sample set |
-| T-07 | Sprint 2 | Listener experience | Replace placeholder TTS functions with provider-backed preview/synthesis | AI/Backend | Dev | Todo | Voice preview and synthesis return playable media in staging |
+| T-05 | Sprint 2 | Creator content quality | Replace placeholder text generation with provider-backed server implementation | AI/Backend | Dev | Done | OpenAI-backed `/api/ai/generate` and `/api/ai/chat` with retries |
+| T-06 | Sprint 2 | Creator content quality | Add prompt template versioning and output quality checks | AI | Dev | Done | `STORY_PROMPT_TEMPLATE_VERSION` + quality gate on generate/chat |
+| T-07 | Sprint 2 | Listener experience | Replace placeholder TTS functions with provider-backed preview/synthesis | AI/Backend | Dev | Done | ElevenLabs HTTP integration + env voice registry + tier caps |
+| T-14 | Sprint 4 | Creator UX | Light mode default and theme-aware studio chrome | Frontend | Dev | Done | `defaultTheme=light`, semantic studio backgrounds |
+| T-15 | Sprint 4 | Creator UX | Dual-column admin workspace (chat + agents) | Frontend/Backend | Dev | Done | `/studio` AdminWorkspace with persisted threads/agents |
+| T-16 | Sprint 4 | Creator UX | Agent isolation safeguards (no duplicate books across chats) | Backend | Dev | Done | 1:1 thread-agent, scoped chat generation, save guards |
 | T-08 | Sprint 2 | Listener experience | Add caching/queue strategy for expensive or repeated synthesis jobs | Backend | Dev | Todo | Repeat requests avoid redundant synthesis where feasible |
 | T-09 | Sprint 2 | Product owner cost control | Add usage accounting for generation tokens and TTS minutes | Backend/Ops | Dev | Todo | Dashboard/report can show monthly usage per capability |
 | T-10 | Sprint 3 | Reliability baseline | Create automated smoke tests for auth, story CRUD, catalog, and unlock flows | QA | Dev | Done | `npm run test:smoke` validates auth-session endpoint, catalog/series/chapter access, unlock guard, and authenticated CRUD with `SMOKE_AUTH_COOKIE` |

@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { safeAuth } from "@/lib/server/safe-auth";
 import { db } from "@/db";
 import { chapterUnlocks, chapters, stories } from "@/db/schema";
 import {
@@ -15,7 +15,7 @@ type RouteCtx = { params: Promise<{ id: string }> };
 export async function GET(_req: Request, ctx: RouteCtx) {
   try {
     const { id } = await ctx.params;
-    const session = await auth();
+    const session = await safeAuth();
     const readerId = session?.user?.id;
 
     const [chapter] = await db.select().from(chapters).where(eq(chapters.id, id));

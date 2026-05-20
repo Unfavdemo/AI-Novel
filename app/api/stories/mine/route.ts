@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { safeAuth } from "@/lib/server/safe-auth";
 import { db } from "@/db";
 import { stories, storyReactions } from "@/db/schema";
 import { count, desc, eq, inArray } from "drizzle-orm";
@@ -32,7 +32,7 @@ async function reactionCountsForStories(storyIds: string[]) {
 }
 
 export async function GET() {
-  const session = await auth();
+  const session = await safeAuth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -42,6 +42,10 @@ export async function GET() {
       id: stories.id,
       title: stories.title,
       visibility: stories.visibility,
+      description: stories.description,
+      coverImageUrl: stories.coverImageUrl,
+      genre: stories.genre,
+      categories: stories.categories,
       createdAt: stories.createdAt,
       updatedAt: stories.updatedAt,
     })

@@ -21,6 +21,8 @@ type SeriesPayload = {
   title: string;
   genre: string | null;
   mood: string | null;
+  description: string | null;
+  coverImageUrl: string | null;
   createdAt: string;
   authorName: string | null;
 };
@@ -112,7 +114,7 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
           href="/"
           className="text-[11px] font-medium uppercase tracking-wide text-gold-400/90 hover:text-gold-300"
         >
-          Catalog
+          Discover
         </Link>
         <Link
           href={`/library/${series.id}`}
@@ -122,10 +124,24 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
         </Link>
       </div>
 
-      <header className="mt-3">
+      <header className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
+        {series.coverImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={series.coverImageUrl}
+            alt=""
+            className="h-36 w-36 shrink-0 rounded-lg border border-border-subtle object-cover"
+          />
+        ) : null}
+        <div className="min-w-0 flex-1">
         <h1 className="text-xl font-semibold leading-tight tracking-tight text-text-primary sm:text-2xl">
           {series.title}
         </h1>
+        {series.description ? (
+          <p className="mt-2 text-sm leading-relaxed text-text-muted">
+            {series.description}
+          </p>
+        ) : null}
         <p className="mt-1 text-xs text-text-muted">
           {series.authorName ?? "Author"} ·{" "}
           {new Date(series.createdAt).toLocaleDateString(undefined, {
@@ -139,6 +155,7 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
             {[series.genre, series.mood].filter(Boolean).join(" · ")}
           </p>
         )}
+        </div>
       </header>
 
       <section className="mt-5">

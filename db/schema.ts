@@ -103,6 +103,12 @@ export const stories = pgTable("stories", {
   literarySophistication: integer("literary_sophistication"),
   narrativeTension: integer("narrative_tension"),
   targetCharacterCount: integer("target_character_count"),
+  description: text("description"),
+  /** JSON string array of keyword strings */
+  keywords: text("keywords"),
+  /** JSON string array of category labels */
+  categories: text("categories"),
+  coverImageUrl: text("cover_image_url"),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
@@ -192,6 +198,61 @@ export const chapterUnlocks = pgTable(
   }),
 );
 
+export type StudioMessageRole = "user" | "assistant" | "system";
+
+export const studioThreads = pgTable("studio_threads", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  title: text("title").notNull().default("New chat"),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+export const studioMessages = pgTable("studio_messages", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  threadId: text("thread_id")
+    .notNull()
+    .references(() => studioThreads.id, { onDelete: "cascade" }),
+  role: text("role").notNull().$type<StudioMessageRole>(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+export const studioAgents = pgTable(
+  "studio_agents",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    threadId: text("thread_id")
+      .notNull()
+      .references(() => studioThreads.id, { onDelete: "cascade" }),
+    storyId: text("story_id").references(() => stories.id, { onDelete: "set null" }),
+    draftBody: text("draft_body").notNull().default(""),
+    controlsJson: text("controls_json").notNull().default("{}"),
+    metadataJson: text("metadata_json").notNull().default("{}"),
+    status: text("status")
+      .notNull()
+      .$type<"draft" | "saved">()
+      .default("draft"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => ({
+    threadUnique: uniqueIndex("studio_agents_thread_id_idx").on(t.threadId),
+    storyUnique: uniqueIndex("studio_agents_story_id_idx").on(t.storyId),
+  }),
+);
+
 export const usageEvents = pgTable("usage_events", {
   id: text("id")
     .primaryKey()
@@ -229,6 +290,28 @@ export const storiesRelations = relations(stories, ({ one, many }) => ({
   chapters: many(chapters),
 }));
 
+export const studioThreadsRelations = relations(studioThreads, ({ one, many }) => ({
+  user: one(users, { fields: [studioThreads.userId], references: [users.id] }),
+  messages: many(studioMessages),
+  agent: one(studioAgents, { fields: [studioThreads.id], references: [studioAgents.threadId] }),
+}));
+
+export const studioMessagesRelations = relations(studioMessages, ({ one }) => ({
+  thread: one(studioThreads, {
+    fields: [studioMessages.threadId],
+    references: [studioThreads.id],
+  }),
+}));
+
+export const studioAgentsRelations = relations(studioAgents, ({ one }) => ({
+  user: one(users, { fields: [studioAgents.userId], references: [users.id] }),
+  thread: one(studioThreads, {
+    fields: [studioAgents.threadId],
+    references: [studioThreads.id],
+  }),
+  story: one(stories, { fields: [studioAgents.storyId], references: [stories.id] }),
+}));
+
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
@@ -236,4 +319,6 @@ export const usersRelations = relations(users, ({ many }) => ({
   reactions: many(storyReactions),
   comments: many(comments),
   chapterUnlocks: many(chapterUnlocks),
+  studioThreads: many(studioThreads),
+  studioAgents: many(studioAgents),
 }));

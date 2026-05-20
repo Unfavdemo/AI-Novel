@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { safeAuth } from "@/lib/server/safe-auth";
 import { db } from "@/db";
 import { chapterUnlocks, chapters, stories } from "@/db/schema";
 import { logUnlockEvent } from "@/lib/observability/unlock-events";
@@ -11,7 +11,7 @@ type RouteCtx = { params: Promise<{ id: string }> };
 
 export async function POST(req: Request, ctx: RouteCtx) {
   try {
-    const session = await auth();
+    const session = await safeAuth();
     const readerId = session?.user?.id;
     if (!readerId) {
       return NextResponse.json(

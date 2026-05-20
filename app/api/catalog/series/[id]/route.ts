@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { safeAuth } from "@/lib/server/safe-auth";
 import { db } from "@/db";
 import { chapterUnlocks, chapters, stories, users } from "@/db/schema";
 import {
@@ -13,7 +13,7 @@ type RouteCtx = { params: Promise<{ id: string }> };
 export async function GET(_req: Request, ctx: RouteCtx) {
   try {
     const { id } = await ctx.params;
-    const session = await auth();
+    const session = await safeAuth();
     const readerId = session?.user?.id;
 
     const [story] = await db.select().from(stories).where(eq(stories.id, id));
@@ -77,6 +77,8 @@ export async function GET(_req: Request, ctx: RouteCtx) {
         title: story.title,
         genre: story.genre,
         mood: story.mood,
+        description: story.description,
+        coverImageUrl: story.coverImageUrl,
         createdAt:
           story.createdAt instanceof Date
             ? story.createdAt.toISOString()

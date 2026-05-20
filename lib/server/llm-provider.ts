@@ -1,4 +1,5 @@
 import type { StoryGenerationParams } from "@/lib/api/llm";
+import type { StudioMessageRole } from "@/db/schema";
 import { buildStoryPrompt } from "@/lib/server/prompt-templates";
 
 export type LlmResult = {
@@ -50,6 +51,67 @@ export async function generateStoryWithProvider(
       ],
     }),
     signal: timeoutSignal(20_000),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`LLM provider error (${res.status}): ${body.slice(0, 200)}`);
+  }
+
+  const body = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+    usage?: { prompt_tokens?: number; completion_tokens?: number };
+  };
+
+  const text = body.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error("LLM provider returned empty output");
+
+  return {
+    text,
+    provider: "openai",
+    model,
+    promptTokens: body.usage?.prompt_tokens ?? 0,
+    completionTokens: body.usage?.completion_tokens ?? 0,
+  };
+}
+
+export type ChatCompletionMessage = {
+  role: StudioMessageRole;
+  content: string;
+};
+
+export async function generateChatWithProvider(input: {
+  systemPrompt: string;
+  messages: ChatCompletionMessage[];
+}): Promise<LlmResult> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "LLM provider not configured: set OPENAI_API_KEY (and optionally OPENAI_MODEL) in your environment.",
+    );
+  }
+
+  const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+  const openAiMessages = [
+    { role: "system" as const, content: input.systemPrompt },
+    ...input.messages.map((m) => ({
+      role: m.role as "user" | "assistant" | "system",
+      content: m.content,
+    })),
+  ];
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.85,
+      messages: openAiMessages,
+    }),
+    signal: timeoutSignal(45_000),
   });
 
   if (!res.ok) {

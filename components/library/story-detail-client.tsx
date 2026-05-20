@@ -1,6 +1,8 @@
 "use client";
 
 import { PageShell } from "@/components/page-shell";
+import { StoryCover } from "@/components/story/story-cover";
+import { parseCategoriesJson, parseKeywordsJson } from "@/lib/story-listing-parse";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { startTransition, useCallback, useEffect, useState } from "react";
@@ -14,6 +16,10 @@ type StoryPayload = {
   genre: string | null;
   mood: string | null;
   complexity: string | null;
+  description: string | null;
+  keywords: string | null;
+  categories: string | null;
+  coverImageUrl: string | null;
   createdAt: string;
   authorName: string | null;
   likesCount: number;
@@ -35,6 +41,7 @@ export function StoryDetailClient({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
   const [commentBody, setCommentBody] = useState("");
   const [posting, setPosting] = useState(false);
+  const [refreshingListing, setRefreshingListing] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/stories/${id}`);
@@ -72,6 +79,25 @@ export function StoryDetailClient({ id }: { id: string }) {
     });
     if (!res.ok) return;
     void load();
+  };
+
+  const refreshListing = async () => {
+    setRefreshingListing(true);
+    try {
+      const res = await fetch(`/api/stories/${id}/refresh-listing`, {
+        method: "POST",
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(data.error ?? "Could not generate cover and listing");
+        return;
+      }
+      await load();
+    } catch {
+      setError("Could not generate cover and listing");
+    } finally {
+      setRefreshingListing(false);
+    }
   };
 
   const postComment = async () => {
@@ -127,13 +153,21 @@ export function StoryDetailClient({ id }: { id: string }) {
         {status === "authenticated" &&
         sessionData?.user?.id &&
         sessionData.user.id === story.userId ? (
-          <p className="mt-2 text-xs">
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-xs">
             <Link
               href={`/library/${id}/chapters`}
-              className="font-medium text-gold-400 underline hover:text-gold-300"
+              className="font-medium text-accent underline"
             >
               Manage chapters
             </Link>
+            <button
+              type="button"
+              disabled={refreshingListing}
+              onClick={() => void refreshListing()}
+              className="rounded border border-gold-500/35 px-2 py-0.5 text-[11px] font-medium text-accent disabled:opacity-50"
+            >
+              {refreshingListing ? "Generating…" : "Generate cover & listing"}
+            </button>
             {story.visibility === "public" ? (
               <>
                 {" · "}
@@ -162,11 +196,40 @@ export function StoryDetailClient({ id }: { id: string }) {
             ? "Published in store"
             : "Draft only (private shelf)"}
         </p>
+        <div className="mt-4 max-w-xs overflow-hidden rounded-lg border border-border-subtle">
+          <StoryCover
+            title={story.title}
+            coverImageUrl={story.coverImageUrl}
+            className="h-48"
+          />
+        </div>
+        {story.description ? (
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-text-muted">
+            {story.description}
+          </p>
+        ) : null}
         {(story.genre || story.mood) && (
           <p className="mt-1 text-[11px] text-text-faint">
             {[story.genre, story.mood, story.complexity].filter(Boolean).join(" · ")}
           </p>
         )}
+        {parseCategoriesJson(story.categories).length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {parseCategoriesJson(story.categories).map((cat) => (
+              <span
+                key={cat}
+                className="rounded-full border border-border-subtle bg-elevated px-2 py-0.5 text-[10px] text-text-muted"
+              >
+                {cat}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {parseKeywordsJson(story.keywords).length > 0 ? (
+          <p className="mt-2 text-[11px] text-text-faint">
+            Keywords: {parseKeywordsJson(story.keywords).join(" · ")}
+          </p>
+        ) : null}
       </header>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">

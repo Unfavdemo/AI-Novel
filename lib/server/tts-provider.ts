@@ -3,12 +3,31 @@ const synthesisCache = new Map<
   { expiresAt: number; value: Promise<ArrayBuffer> }
 >();
 
+import { assertElevenLabsBudget } from "@/lib/server/elevenlabs-usage";
+
 const CACHE_TTL_MS = 10 * 60 * 1000;
 
 type SynthesisInput = {
   voiceId: string;
   text: string;
+  userId?: string | null;
 };
+
+function parseVoiceSetting(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : fallback;
+}
+
+function getVoiceSettings() {
+  return {
+    stability: parseVoiceSetting("ELEVENLABS_STABILITY", 0.45),
+    similarity_boost: parseVoiceSetting("ELEVENLABS_SIMILARITY", 0.65),
+    style: parseVoiceSetting("ELEVENLABS_STYLE", 0.35),
+    use_speaker_boost: true,
+  };
+}
 
 function timeoutSignal(ms: number): AbortSignal {
   const controller = new AbortController();
@@ -27,6 +46,8 @@ export async function synthesizeWithProvider(
   }
 
   const model = process.env.ELEVENLABS_MODEL ?? "eleven_multilingual_v2";
+  await assertElevenLabsBudget(input.userId ?? null, input.text.length);
+
   const key = `${input.voiceId}:${input.text}`;
   const now = Date.now();
   const cached = synthesisCache.get(key);
@@ -46,7 +67,7 @@ export async function synthesizeWithProvider(
       body: JSON.stringify({
         text: input.text,
         model_id: model,
-        voice_settings: { stability: 0.45, similarity_boost: 0.65 },
+        voice_settings: getVoiceSettings(),
       }),
       signal: timeoutSignal(20_000),
     },

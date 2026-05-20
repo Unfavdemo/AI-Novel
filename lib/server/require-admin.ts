@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { safeAuth } from "@/lib/server/safe-auth";
 import { isAdminSession, getAdminEmailLowercase } from "@/lib/server/is-admin";
 import type { Session } from "next-auth";
 import { NextResponse } from "next/server";
@@ -21,7 +21,7 @@ export async function requireAdmin(): Promise<AdminAuthResult> {
     };
   }
 
-  const session = await auth();
+  const session = await safeAuth();
   if (!session?.user?.id) {
     return {
       session: null,

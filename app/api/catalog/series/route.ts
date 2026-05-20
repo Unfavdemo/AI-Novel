@@ -37,6 +37,8 @@ export async function GET(req: Request) {
             userId: stories.userId,
             title: stories.title,
             genre: stories.genre,
+            description: stories.description,
+            coverImageUrl: stories.coverImageUrl,
             createdAt: stories.createdAt,
             body: stories.body,
           })
@@ -66,6 +68,8 @@ export async function GET(req: Request) {
         return fallbackRows.map((row) => ({
           ...row,
           genre: null as string | null,
+          description: null as string | null,
+          coverImageUrl: null as string | null,
           body: "",
         }));
       }
@@ -91,6 +95,8 @@ export async function GET(req: Request) {
         id: r.id,
         title: r.title,
         genre: r.genre,
+        description: r.description,
+        coverImageUrl: r.coverImageUrl,
         createdAt: r.createdAt,
         authorName: a?.name ?? null,
         authorImage: a?.image ?? null,
@@ -126,7 +132,7 @@ export async function GET(req: Request) {
 
     const items = rows.map((r) => {
       const fc = firstChapter.get(r.id);
-      const source = fc?.body ?? r.body;
+      const source = r.description?.trim() || fc?.body || r.body;
       const excerpt =
         source.length <= EXCERPT_LEN
           ? source
@@ -135,6 +141,8 @@ export async function GET(req: Request) {
         id: r.id,
         title: r.title,
         genre: r.genre,
+        description: r.description ?? null,
+        coverImageUrl: r.coverImageUrl ?? null,
         createdAt:
           r.createdAt instanceof Date ? r.createdAt.toISOString() : r.createdAt,
         authorName: r.authorName,

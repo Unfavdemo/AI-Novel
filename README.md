@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) app: reader-facing catalog at `/`, creator studio at `/studio`, and Postgres-backed stories/chapters.
+This is a [Next.js](https://nextjs.org) app: reader-facing catalog at `/`, **admin workspace** at `/studio` (dual-column chat + agent book review), and Postgres-backed stories/chapters.
+
+**Project metadata:** [docs/PROJECT.md](docs/PROJECT.md) (audiobook app, in progress, iOS/Android planned).
 
 Client-facing **pricing and five-year cost guide** (AI text + voice, plain-English scenarios, developer rates): [docs/CLIENT_PRICING_AND_TCO.md](docs/CLIENT_PRICING_AND_TCO.md).
 
@@ -10,12 +12,24 @@ Client-facing **pricing and five-year cost guide** (AI text + voice, plain-Engli
 
 Re-running `pnpm db:seed` deletes the demo author (`00000000-0000-4000-8000-000000000001`) and re-inserts the sample catalog (safe for local dev). If you set `CATALOG_AUTHOR_USER_ID` in `.env`, use that same UUID—or unset it—so the home catalog lists the demo series.
 
-## AI manuscript generation (Studio)
+## Admin workspace (`/studio`)
 
-To enable **Generate manuscript** in `/studio`, set the following in your `.env`:
+Admin-only dual-column UI: **Chat** (multi-turn prompts, refine) and **Agents** (isolated manuscript drafts per chat). Requires `ADMIN_EMAIL` / admin sign-in.
+
+Apply studio tables: `pnpm db:migrate` (includes `studio_threads`, `studio_messages`, `studio_agents`).
+
+## AI manuscript generation
+
+Set in `.env`:
 
 - `OPENAI_API_KEY` (required)
 - `OPENAI_MODEL` (optional; defaults to `gpt-4o-mini`)
+
+## ElevenLabs narration (Voice Console)
+
+- `ELEVENLABS_API_KEY` (required for `/api/tts/*`)
+- `ELEVENLABS_PLAN` — `free` (dev default) or `starter` (~$5/mo)
+- `ELEVENLABS_VOICE_*` — per-speaker voice_id overrides (see [.env.example](.env.example))
 
 ## Getting Started
 

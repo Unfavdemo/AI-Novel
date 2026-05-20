@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { Providers } from "@/components/providers";
 import { SiteHeader } from "@/components/site-header";
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,9 +17,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Atelier — Serialized stories",
-  description:
-    "Read serialized fiction chapter by chapter. Creators use the studio for AI-assisted manuscripts and audiobook layout.",
+  title: {
+    default: `${APP_NAME} — Audiobooks & serialized fiction`,
+    template: `%s · ${APP_NAME}`,
+  },
+  description: APP_TAGLINE,
 };
 
 export default function RootLayout({
@@ -35,6 +39,7 @@ export default function RootLayout({
         <Providers>
           <SiteHeader />
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+          <SiteFooter />
         </Providers>
       </body>
     </html>

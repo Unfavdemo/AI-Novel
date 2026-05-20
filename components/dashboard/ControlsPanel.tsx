@@ -93,7 +93,7 @@ export function ControlsPanel({
         <div>
           <FieldLabel>Genre</FieldLabel>
           <select
-            className="w-full rounded-lg border border-border-subtle bg-obsidian-950/80 px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/40 focus:ring-2"
+            className="w-full rounded-lg border border-border-subtle input-surface px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/40 focus:ring-2"
             value={controls.genre}
             onChange={(e) => onChange({ genre: e.target.value })}
           >
@@ -108,7 +108,7 @@ export function ControlsPanel({
         <div>
           <FieldLabel>Complexity</FieldLabel>
           <select
-            className="w-full rounded-lg border border-border-subtle bg-obsidian-950/80 px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/40 focus:ring-2"
+            className="w-full rounded-lg border border-border-subtle input-surface px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/40 focus:ring-2"
             value={controls.complexity}
             onChange={(e) => onChange({ complexity: e.target.value })}
           >
@@ -127,7 +127,7 @@ export function ControlsPanel({
             min={500}
             max={120000}
             step={100}
-            className="w-full rounded-lg border border-border-subtle bg-obsidian-950/80 px-3 py-2 text-sm tabular-nums text-text-primary outline-none ring-gold-500/40 focus:ring-2"
+            className="w-full rounded-lg border border-border-subtle input-surface px-3 py-2 text-sm tabular-nums text-text-primary outline-none ring-gold-500/40 focus:ring-2"
             value={controls.targetCharacterCount}
             onChange={(e) =>
               onChange({ targetCharacterCount: Number(e.target.value) })
@@ -138,7 +138,7 @@ export function ControlsPanel({
         <div>
           <FieldLabel>Mood</FieldLabel>
           <select
-            className="w-full rounded-lg border border-border-subtle bg-obsidian-950/80 px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/40 focus:ring-2"
+            className="w-full rounded-lg border border-border-subtle input-surface px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/40 focus:ring-2"
             value={controls.mood}
             onChange={(e) => onChange({ mood: e.target.value })}
           >
