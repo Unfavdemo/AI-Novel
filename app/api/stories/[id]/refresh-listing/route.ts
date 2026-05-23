@@ -2,10 +2,16 @@ import { db } from "@/db";
 import { stories } from "@/db/schema";
 import { parseControlsJson } from "@/lib/server/studio-defaults";
 import {
+  buildDefaultCastForSpeakers,
+  serializeVoiceCastJson,
+} from "@/lib/speaker-voice";
+import { parseVoiceTags } from "@/lib/voiceTags";
+import {
   categoriesToJson,
   keywordsToJson,
   generateStoryListingMetadata,
 } from "@/lib/server/story-metadata";
+import { isAdminSession } from "@/lib/server/is-admin";
 import { safeAuth } from "@/lib/server/safe-auth";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -28,7 +34,7 @@ export async function POST(_req: Request, ctx: RouteCtx) {
   if (!story) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  if (story.userId !== session.user.id) {
+  if (story.userId !== session.user.id && !isAdminSession(session)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (!story.body.trim()) {
@@ -53,6 +59,11 @@ export async function POST(_req: Request, ctx: RouteCtx) {
       generateCover: true,
     });
 
+    const segments = parseVoiceTags(story.body);
+    const voiceCast = buildDefaultCastForSpeakers(
+      segments.map((s) => s.speakerId),
+    );
+
     await db
       .update(stories)
       .set({
@@ -61,6 +72,7 @@ export async function POST(_req: Request, ctx: RouteCtx) {
         keywords: keywordsToJson(meta.keywords),
         categories: categoriesToJson(meta.categories),
         coverImageUrl: meta.coverImageUrl,
+        voiceCastJson: serializeVoiceCastJson(voiceCast),
         updatedAt: new Date(),
       })
       .where(eq(stories.id, id));

@@ -19,5 +19,9 @@ export function resolveElevenLabsVoiceId(speakerOrVoiceId: string): string {
   ) {
     return speakerOrVoiceId;
   }
+  const fallback = process.env.ELEVENLABS_DEFAULT_VOICE_ID?.trim();
+  if (fallback && !fallback.startsWith("placeholder_")) {
+    return fallback;
+  }
   return DEFAULT_ELEVENLABS_VOICE_ID;
 }

@@ -1,5 +1,4 @@
 import { safeAuth } from "@/lib/server/safe-auth";
-import { requireAdmin } from "@/lib/server/require-admin";
 import { resolveElevenLabsVoiceId } from "@/lib/server/resolve-voice-id";
 import { synthesizeWithProvider } from "@/lib/server/tts-provider";
 import { recordUsageEvent } from "@/lib/server/usage-accounting";
@@ -12,8 +11,10 @@ type PreviewBody = {
 const PREVIEW_TEXT = "The city held its breath, and the story began again.";
 
 export async function POST(req: Request) {
-  const adminGate = await requireAdmin();
-  if (adminGate.error) return adminGate.error;
+  const session = await safeAuth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   let body: PreviewBody;
   try {
@@ -28,15 +29,14 @@ export async function POST(req: Request) {
   }
 
   try {
-    const session = await safeAuth();
     const voiceId = resolveElevenLabsVoiceId(rawVoice);
     const result = await synthesizeWithProvider({
       voiceId,
       text: PREVIEW_TEXT,
-      userId: session?.user?.id ?? null,
+      userId: session.user.id,
     });
     await recordUsageEvent({
-      userId: session?.user?.id ?? null,
+      userId: session.user.id,
       capability: "tts_synthesis",
       provider: result.provider,
       model: result.model,

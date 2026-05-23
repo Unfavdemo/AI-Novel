@@ -1,6 +1,8 @@
 "use client";
 
+import { StoryListenButton } from "@/components/book/StoryListenButton";
 import { PageShell } from "@/components/page-shell";
+import { StoryOwnerActions } from "@/components/library/StoryOwnerActions";
 import { StoryCover } from "@/components/story/story-cover";
 import { parseCategoriesJson, parseKeywordsJson } from "@/lib/story-listing-parse";
 import { useSession } from "next-auth/react";
@@ -20,6 +22,7 @@ type StoryPayload = {
   keywords: string | null;
   categories: string | null;
   coverImageUrl: string | null;
+  voiceCastJson: string | null;
   createdAt: string;
   authorName: string | null;
   likesCount: number;
@@ -41,7 +44,6 @@ export function StoryDetailClient({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
   const [commentBody, setCommentBody] = useState("");
   const [posting, setPosting] = useState(false);
-  const [refreshingListing, setRefreshingListing] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/stories/${id}`);
@@ -81,24 +83,10 @@ export function StoryDetailClient({ id }: { id: string }) {
     void load();
   };
 
-  const refreshListing = async () => {
-    setRefreshingListing(true);
-    try {
-      const res = await fetch(`/api/stories/${id}/refresh-listing`, {
-        method: "POST",
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "Could not generate cover and listing");
-        return;
-      }
-      await load();
-    } catch {
-      setError("Could not generate cover and listing");
-    } finally {
-      setRefreshingListing(false);
-    }
-  };
+  const canManage =
+    status === "authenticated" &&
+    story &&
+    (sessionData?.user?.id === story.userId || sessionData?.user?.isAdmin === true);
 
   const postComment = async () => {
     if (!commentBody.trim() || status !== "authenticated") return;
@@ -150,37 +138,39 @@ export function StoryDetailClient({ id }: { id: string }) {
         <h1 className="text-xl font-semibold leading-tight tracking-tight text-text-primary sm:text-2xl">
           {story.title}
         </h1>
-        {status === "authenticated" &&
-        sessionData?.user?.id &&
-        sessionData.user.id === story.userId ? (
-          <p className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          <StoryListenButton
+            storyId={id}
+            fallbackText={story.body}
+            voiceCastJson={story.voiceCastJson}
+            label="Listen to book"
+            size="md"
+          />
+          {canManage ? (
+            <>
+              <Link
+                href={`/library/${id}/chapters`}
+                className="font-medium text-accent underline"
+              >
+                Manage chapters
+              </Link>
+              <StoryOwnerActions
+                storyId={id}
+                hasCover={Boolean(story.coverImageUrl)}
+                variant="detail"
+                onUpdated={() => void load()}
+              />
+            </>
+          ) : null}
+          {story.visibility === "public" ? (
             <Link
-              href={`/library/${id}/chapters`}
-              className="font-medium text-accent underline"
+              href={`/store/${id}`}
+              className="font-medium text-gold-400 underline hover:text-gold-300"
             >
-              Manage chapters
+              View in store
             </Link>
-            <button
-              type="button"
-              disabled={refreshingListing}
-              onClick={() => void refreshListing()}
-              className="rounded border border-gold-500/35 px-2 py-0.5 text-[11px] font-medium text-accent disabled:opacity-50"
-            >
-              {refreshingListing ? "Generating…" : "Generate cover & listing"}
-            </button>
-            {story.visibility === "public" ? (
-              <>
-                {" · "}
-                <Link
-                  href={`/store/${id}`}
-                  className="font-medium text-gold-400 underline hover:text-gold-300"
-                >
-                  View in store
-                </Link>
-              </>
-            ) : null}
-          </p>
-        ) : null}
+          ) : null}
+        </div>
         <p className="mt-1.5 text-xs text-text-muted">
           {story.authorName ?? "Author"} ·{" "}
           {new Date(story.createdAt).toLocaleString()} · {story.visibility}

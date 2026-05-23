@@ -1,5 +1,6 @@
 "use client";
 
+import { ListenButton } from "@/components/book/ListenButton";
 import { PageShell } from "@/components/page-shell";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -19,8 +20,18 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [voiceCastJson, setVoiceCastJson] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    const storyRes = await fetch(`/api/stories/${storyId}`);
+    if (storyRes.ok) {
+      const storyData = (await storyRes.json()) as {
+        story?: { voiceCastJson?: string | null };
+      };
+      setVoiceCastJson(storyData.story?.voiceCastJson ?? null);
+    }
+
     const res = await fetch(`/api/stories/${storyId}/chapters`);
     if (res.status === 401) {
       setError("Sign in required");
@@ -76,6 +87,31 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
       method: "DELETE",
     });
     if (res.ok) await load();
+  };
+
+  const generateChapter = async () => {
+    const direction = prompt("Optional direction for the next chapter?") ?? "";
+    setGenerating(true);
+    try {
+      const res = await fetch(
+        `/api/stories/${storyId}/chapters/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            direction: direction.trim() || undefined,
+          }),
+        },
+      );
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(data.error ?? "Could not generate chapter");
+        return;
+      }
+      await load();
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const addChapter = async () => {
@@ -137,13 +173,23 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
             Order, previews, and copy match the store listing.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void addChapter()}
-          className="rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-on-accent"
-        >
-          Add chapter
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={generating}
+            onClick={() => void generateChapter()}
+            className="rounded-md border border-gold-500/40 px-3 py-1.5 text-xs font-medium text-accent disabled:opacity-50"
+          >
+            {generating ? "Generating…" : "Generate next chapter (AI)"}
+          </button>
+          <button
+            type="button"
+            onClick={() => void addChapter()}
+            className="rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-on-accent"
+          >
+            Add chapter
+          </button>
+        </div>
       </div>
 
       <ul className="mt-4 flex flex-col gap-4">
@@ -192,6 +238,11 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
               >
                 Delete
               </button>
+              <ListenButton
+                text={c.body}
+                voiceCastJson={voiceCastJson}
+                label="Listen"
+              />
             </div>
             <input
               className="mt-2 w-full rounded-md border border-border-subtle bg-obsidian-950/70 px-2.5 py-1.5 text-sm font-medium text-text-primary"

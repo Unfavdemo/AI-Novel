@@ -1,18 +1,20 @@
-import { previewVoice } from "@/lib/api/tts";
+import { playNarration } from "@/lib/audio/playNarration";
+import type { VoiceCastMap } from "@/lib/speaker-voice";
 import type { VoiceSegment } from "@/lib/voiceTags";
 
 /**
- * Sequentially runs stub previews in manuscript order (no real audio sync yet).
+ * Plays manuscript segments in order via ElevenLabs synthesis.
  */
 export async function playAllSegments(
   segments: VoiceSegment[],
-  opts?: { pauseMs?: number; voiceForSpeaker?: (speakerId: string) => string },
+  opts?: { pauseMs?: number; cast?: VoiceCastMap; castJson?: string },
 ): Promise<void> {
-  const pauseMs = opts?.pauseMs ?? 450;
-  const pick = opts?.voiceForSpeaker ?? ((id: string) => id);
-
-  for (const seg of segments) {
-    await previewVoice(pick(seg.speakerId));
-    await new Promise((r) => setTimeout(r, pauseMs));
-  }
+  const source = segments
+    .map((s) => `[${s.speakerId}] ${s.text}`)
+    .join("\n\n");
+  await playNarration(source, {
+    pauseMs: opts?.pauseMs ?? 200,
+    cast: opts?.cast,
+    castJson: opts?.castJson,
+  });
 }

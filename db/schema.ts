@@ -109,6 +109,8 @@ export const stories = pgTable("stories", {
   /** JSON string array of category labels */
   categories: text("categories"),
   coverImageUrl: text("cover_image_url"),
+  /** JSON map: normalized speakerId -> cast preset (narrator, aria, marcus, …) */
+  voiceCastJson: text("voice_cast_json"),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });

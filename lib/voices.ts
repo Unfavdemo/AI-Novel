@@ -15,8 +15,11 @@ export type VoiceProfile = {
   envKey: string;
 };
 
-/** Public Rachel voice — safe default for free-tier dev. */
-export const DEFAULT_ELEVENLABS_VOICE_ID = "21m00Tcm4TlvDq8ikWAM";
+/**
+ * Premade voice for ElevenLabs free API tier.
+ * Override with ELEVENLABS_DEFAULT_VOICE_ID or per-speaker ELEVENLABS_VOICE_* env vars.
+ */
+export const DEFAULT_ELEVENLABS_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb";
 
 export const VOICE_REGISTRY: Record<string, VoiceProfile> = {
   narrator: {

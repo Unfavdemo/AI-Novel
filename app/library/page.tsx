@@ -1,7 +1,9 @@
 "use client";
 
+import { StoryListenButton } from "@/components/book/StoryListenButton";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/page-shell";
+import { StoryOwnerActions } from "@/components/library/StoryOwnerActions";
 import { StoryCover } from "@/components/story/story-cover";
 import { parseCategoriesJson } from "@/lib/story-listing-parse";
 import { useSession } from "next-auth/react";
@@ -22,7 +24,7 @@ type LibraryListItem = {
 };
 
 export default function LibraryPage() {
-  const { status } = useSession();
+  const { status, data: sessionData } = useSession();
   const [tab, setTab] = useState<"mine" | "public">("mine");
   const [mine, setMine] = useState<LibraryListItem[]>([]);
   const [pub, setPub] = useState<LibraryListItem[]>([]);
@@ -193,11 +195,18 @@ export default function LibraryPage() {
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((s) => {
             const cats = parseCategoriesJson(s.categories);
+            const showActions =
+              tab === "mine" ||
+              (tab === "public" && sessionData?.user?.isAdmin === true);
+
             return (
-              <li key={s.id}>
+              <li
+                key={s.id}
+                className="flex h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-elevated/50"
+              >
                 <Link
                   href={`/library/${s.id}`}
-                  className="flex h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-elevated/50 transition hover:border-gold-500/30 hover:bg-elevated hover:shadow-sm"
+                  className="flex flex-1 flex-col transition hover:bg-elevated hover:shadow-sm"
                 >
                   <StoryCover title={s.title} coverImageUrl={s.coverImageUrl} />
                   <div className="flex flex-1 flex-col p-3">
@@ -222,6 +231,19 @@ export default function LibraryPage() {
                     )}
                   </div>
                 </Link>
+                {showActions ? (
+                  <div className="flex flex-col gap-2 border-t border-border-subtle px-3 py-2">
+                    <StoryListenButton storyId={s.id} label="Listen" />
+                    <StoryOwnerActions
+                      storyId={s.id}
+                      hasCover={Boolean(s.coverImageUrl)}
+                      variant="card"
+                      onUpdated={() =>
+                        void (tab === "mine" ? loadMine() : loadPublic())
+                      }
+                    />
+                  </div>
+                ) : null}
               </li>
             );
           })}

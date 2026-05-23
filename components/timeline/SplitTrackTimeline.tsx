@@ -57,9 +57,7 @@ export function SplitTrackTimeline({
   );
 
   const handlePlayAll = useCallback(() => {
-    void playAllSegments(segments, {
-      voiceForSpeaker: (sid) => castMapping[sid] ?? sid,
-    });
+    void playAllSegments(segments, { cast: castMapping });
   }, [segments, castMapping]);
 
   if (capped.length === 0) {

@@ -2,6 +2,7 @@ import { safeAuth } from "@/lib/server/safe-auth";
 import { db } from "@/db";
 import { chapters, comments, stories, storyReactions, users } from "@/db/schema";
 import { requireUser } from "@/lib/require-user";
+import { isAdminSession } from "@/lib/server/is-admin";
 import { canReadStory } from "@/lib/story-access";
 import type { InferInsertModel } from "drizzle-orm";
 import { and, count, desc, eq } from "drizzle-orm";
@@ -145,7 +146,9 @@ export async function DELETE(_req: Request, ctx: RouteCtx) {
   if (!existing) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  if (existing.userId !== userId) {
+  const session = await safeAuth();
+  const isOwner = existing.userId === userId;
+  if (!isOwner && !isAdminSession(session)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

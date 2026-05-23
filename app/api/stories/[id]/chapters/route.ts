@@ -1,6 +1,8 @@
 import { db } from "@/db";
 import { chapters, stories } from "@/db/schema";
 import { requireUser } from "@/lib/require-user";
+import { isAdminSession } from "@/lib/server/is-admin";
+import { safeAuth } from "@/lib/server/safe-auth";
 import { and, asc, eq, gte, max, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -15,7 +17,8 @@ export async function GET(_req: Request, ctx: RouteCtx) {
   if (!story) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  if (story.userId !== userId) {
+  const session = await safeAuth();
+  if (story.userId !== userId && !isAdminSession(session)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

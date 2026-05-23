@@ -50,6 +50,9 @@ export async function assertElevenLabsBudget(
   userId: string | null,
   incomingChars: number,
 ): Promise<void> {
+  if (process.env.NODE_ENV === "development") {
+    return;
+  }
   const limit = getElevenLabsMonthlyCharLimit();
   const used = await getMonthlyTtsCharacters(userId);
   if (used + incomingChars > limit) {

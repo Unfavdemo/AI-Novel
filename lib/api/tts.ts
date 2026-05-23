@@ -9,6 +9,7 @@ export async function previewVoice(voiceId: string): Promise<void> {
   const res = await fetch("/api/tts/preview", {
     method: "POST",
     headers: { "content-type": "application/json" },
+    credentials: "same-origin",
     body: JSON.stringify({ voiceId }),
   });
   const body = (await res.json().catch(() => null)) as
@@ -22,13 +23,28 @@ export async function previewVoice(voiceId: string): Promise<void> {
 
 export async function synthesizeSegment(
   segment: VoiceSegment,
-  voiceId: string,
-): Promise<ArrayBuffer | null> {
+  opts?: { castJson?: string },
+): Promise<ArrayBuffer> {
+  const text = segment.text.trim();
+  if (!text) {
+    throw new Error("Nothing to speak in this segment (empty text).");
+  }
+
   const res = await fetch("/api/tts/synthesize", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ voiceId, text: segment.text }),
+    credentials: "same-origin",
+    body: JSON.stringify({
+      speakerId: segment.speakerId,
+      text,
+      castJson: opts?.castJson,
+    }),
   });
-  if (!res.ok) return null;
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `TTS failed (${res.status})`);
+  }
+
   return await res.arrayBuffer();
 }

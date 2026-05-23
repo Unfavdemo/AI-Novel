@@ -1,5 +1,11 @@
 import type { StoryGenerationParams } from "@/lib/api/llm";
 import { generateChatWithProvider } from "@/lib/server/llm-provider";
+import {
+  buildImageGenerationBody,
+  defaultImageModel,
+  imageResponseToDataUrl,
+  resolveImageSize,
+} from "@/lib/server/openai-cover-image";
 
 export type StoryListingMetadata = {
   title: string;
@@ -148,12 +154,38 @@ export async function generateStoryListingMetadata(input: {
   return meta;
 }
 
+/** Generate only a cover image (no full listing LLM pass). */
+export async function generateStoryCoverImage(input: {
+  title: string;
+  body: string;
+  genre?: string | null;
+  mood?: string | null;
+  description?: string | null;
+}): Promise<string | null> {
+  const excerpt = input.body.trim().slice(0, 1200);
+  const artPrompt = [
+    "Square audiobook cover illustration, cinematic lighting, highly detailed.",
+    "No text, titles, logos, or typography in the image.",
+    `Title mood: ${input.title}.`,
+    input.genre ? `Genre: ${input.genre}.` : "",
+    input.mood ? `Tone: ${input.mood}.` : "",
+    input.description?.trim()
+      ? `Scene direction: ${input.description.trim().slice(0, 400)}`
+      : "",
+    excerpt ? `Story excerpt atmosphere: ${excerpt.slice(0, 500)}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return generateCoverImage(artPrompt);
+}
+
 export async function generateCoverImage(prompt: string): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) return null;
 
-  const model = process.env.OPENAI_IMAGE_MODEL ?? "dall-e-2";
-  const size = process.env.OPENAI_IMAGE_SIZE ?? "256x256";
+  const model = defaultImageModel();
+  const size = resolveImageSize(model, process.env.OPENAI_IMAGE_SIZE);
 
   const res = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
@@ -161,14 +193,8 @@ export async function generateCoverImage(prompt: string): Promise<string | null>
       "content-type": "application/json",
       authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model,
-      prompt: prompt.slice(0, 900),
-      n: 1,
-      size,
-      response_format: "b64_json",
-    }),
-    signal: timeoutSignal(60_000),
+    body: JSON.stringify(buildImageGenerationBody(model, prompt, size)),
+    signal: timeoutSignal(90_000),
   });
 
   if (!res.ok) {
@@ -177,12 +203,9 @@ export async function generateCoverImage(prompt: string): Promise<string | null>
   }
 
   const body = (await res.json()) as {
-    data?: { b64_json?: string }[];
+    data?: { b64_json?: string; url?: string }[];
   };
-  const b64 = body.data?.[0]?.b64_json;
-  if (!b64) return null;
-
-  return `data:image/png;base64,${b64}`;
+  return imageResponseToDataUrl(body.data?.[0]);
 }
 
 export function keywordsToJson(keywords: string[]): string | null {
