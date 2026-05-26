@@ -2,8 +2,8 @@
 
 import { ListenButton } from "@/components/book/ListenButton";
 import { PageShell } from "@/components/page-shell";
+import { MobileBackBar } from "@/components/layout/mobile-back-bar";
 import { useAppDialog } from "@/components/ui/app-dialog-provider";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type ChapterRow = {
@@ -173,10 +173,8 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
   if (error) {
     return (
       <PageShell max="content">
+        <MobileBackBar href={`/library/${storyId}`} label="Story" className="mb-4" />
         <p className="text-sm text-red-300">{error}</p>
-        <Link href={`/library/${storyId}`} className="mt-3 inline-block text-sm text-gold-400">
-          Back to story
-        </Link>
       </PageShell>
     );
   }
@@ -184,6 +182,7 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
   if (loading) {
     return (
       <PageShell max="content">
+        <MobileBackBar href={`/library/${storyId}`} label="Story" className="mb-4" />
         <p className="text-sm text-text-muted">Loading…</p>
       </PageShell>
     );
@@ -191,19 +190,14 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
 
   return (
     <PageShell max="content">
-      <Link
-        href={`/library/${storyId}`}
-        className="text-[11px] font-medium uppercase tracking-wide text-gold-400/90 hover:text-gold-300"
-      >
-        Story
-      </Link>
+      <MobileBackBar href={`/library/${storyId}`} label="Story" className="mb-3" />
       <div className="mt-3 flex flex-wrap items-end justify-between gap-3 border-b border-border-subtle pb-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-text-primary sm:text-2xl">
             Chapters
           </h1>
           <p className="mt-0.5 text-xs text-text-muted">
-            Chapter 1 is free for readers; later chapters are paywalled (Stripe checkout coming).
+            Chapter 1 is free for readers; later chapters use the paywall when checkout is enabled on the server.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Providers } from "@/components/providers";
@@ -25,6 +25,14 @@ export const metadata: Metadata = {
   description: APP_TAGLINE,
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -36,12 +44,12 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full min-h-dvh overflow-x-hidden antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-surface font-sans text-text-primary">
+      <body className="flex min-h-dvh flex-col overflow-x-hidden bg-surface font-sans text-text-primary">
         <Providers session={session}>
           <SiteHeader />
-          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+          <main className="scroll-touch flex min-h-0 flex-1 flex-col">{children}</main>
           <SiteFooter />
         </Providers>
       </body>

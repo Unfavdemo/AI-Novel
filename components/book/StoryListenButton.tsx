@@ -1,7 +1,7 @@
 "use client";
 
 import { ListenButton } from "@/components/book/ListenButton";
-import { useCallback, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 
 type ChapterPart = { title: string; body: string };
 
@@ -50,7 +50,9 @@ export function StoryListenButton({
   }, [storyId]);
 
   useEffect(() => {
-    void loadChapters();
+    startTransition(() => {
+      void loadChapters();
+    });
   }, [loadChapters]);
 
   if (loading) {

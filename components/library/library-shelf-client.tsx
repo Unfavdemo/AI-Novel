@@ -9,7 +9,7 @@ import { PageShell } from "@/components/page-shell";
 import { SignInLink } from "@/components/auth/sign-in-link";
 import { useAppSession } from "@/lib/hooks/use-app-session";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 
 type Tab = "purchased" | "saved";
 
@@ -48,7 +48,9 @@ export function LibraryShelfClient() {
   }, [isSignedIn]);
 
   useEffect(() => {
-    void load();
+    startTransition(() => {
+      void load();
+    });
   }, [load]);
 
   const list = tab === "purchased" ? purchased : saved;

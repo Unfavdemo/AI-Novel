@@ -4,6 +4,7 @@ import { CatalogSeriesListenButton } from "@/components/book/CatalogSeriesListen
 import { SignInLink } from "@/components/auth/sign-in-link";
 import { SaveToShelfButton } from "@/components/library/SaveToShelfButton";
 import { PageShell } from "@/components/page-shell";
+import { MobileBackBar } from "@/components/layout/mobile-back-bar";
 import { readResponseJson } from "@/lib/read-response-json";
 import { useAppSession } from "@/lib/hooks/use-app-session";
 import Link from "next/link";
@@ -95,10 +96,8 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
   if (error && !series) {
     return (
       <PageShell max="content">
+        <MobileBackBar href="/" label="Discover" className="mb-4" />
         <p className="text-sm text-red-300">{error}</p>
-        <Link href="/" className="mt-3 inline-block text-sm text-gold-400">
-          Back to catalog
-        </Link>
       </PageShell>
     );
   }
@@ -106,6 +105,7 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
   if (!series) {
     return (
       <PageShell max="content">
+        <MobileBackBar href="/" label="Discover" className="mb-4" />
         <p className="text-sm text-text-muted">{loading ? "Loading…" : "Not found"}</p>
       </PageShell>
     );
@@ -113,23 +113,22 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
 
   return (
     <PageShell max="content">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle pb-3">
-        <Link
-          href="/"
-          className="text-[11px] font-medium uppercase tracking-wide text-gold-400/90 hover:text-gold-300"
-        >
-          Discover
-        </Link>
-        <div className="flex flex-wrap items-center gap-2">
-          <SaveToShelfButton storyId={seriesId} />
-          <Link
-            href={`/library/${series.id}`}
-            className="text-[11px] text-text-muted underline decoration-border-subtle underline-offset-2 hover:text-gold-400"
-          >
-            Discuss
-          </Link>
-        </div>
-      </div>
+      <MobileBackBar
+        href="/"
+        label="Discover"
+        className="mb-3"
+        endSlot={
+          <>
+            <SaveToShelfButton storyId={seriesId} />
+            <Link
+              href={`/library/${series.id}`}
+              className="text-[11px] text-text-muted underline decoration-border-subtle underline-offset-2 hover:text-gold-400 active:opacity-80"
+            >
+              Discuss
+            </Link>
+          </>
+        }
+      />
 
       <header className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
         {series.coverImageUrl ? (
@@ -196,7 +195,7 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
                     ? ` · $${(((c.effectivePriceCents ?? c.priceCents) ?? 0) / 100).toFixed(2)}`
                     : ""}
                   {!c.canReadBody && !c.isFreePreview
-                    ? " · Paywall (Stripe soon)"
+                    ? " · Paywall (checkout not enabled)"
                     : ""}
                 </span>
               </div>

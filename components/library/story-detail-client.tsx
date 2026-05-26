@@ -2,6 +2,7 @@
 
 import { StoryListenButton } from "@/components/book/StoryListenButton";
 import { PageShell } from "@/components/page-shell";
+import { MobileBackBar } from "@/components/layout/mobile-back-bar";
 import { StoryOwnerActions } from "@/components/library/StoryOwnerActions";
 import { StoryCover } from "@/components/story/story-cover";
 import { SignInLink } from "@/components/auth/sign-in-link";
@@ -115,10 +116,8 @@ export function StoryDetailClient({ id }: { id: string }) {
   if (error && !story) {
     return (
       <PageShell max="content">
+        <MobileBackBar href={backHref} label={backLabel} className="mb-4" />
         <p className="text-sm text-red-300">{error}</p>
-        <Link href={backHref} className="mt-3 inline-block text-sm text-gold-400">
-          Back to {backLabel}
-        </Link>
       </PageShell>
     );
   }
@@ -126,6 +125,7 @@ export function StoryDetailClient({ id }: { id: string }) {
   if (!story) {
     return (
       <PageShell max="content">
+        <MobileBackBar href={backHref} label={backLabel} className="mb-4" />
         <p className="text-sm text-text-muted">Loading…</p>
       </PageShell>
     );
@@ -134,12 +134,7 @@ export function StoryDetailClient({ id }: { id: string }) {
   return (
     <PageShell max="content">
       <article>
-      <Link
-        href={backHref}
-        className="text-[11px] font-medium uppercase tracking-wide text-gold-400/90 hover:text-gold-300"
-      >
-        {backLabel}
-      </Link>
+      <MobileBackBar href={backHref} label={backLabel} className="mb-3" />
       <header className="mt-3 border-b border-border-subtle pb-4">
         <h1 className="text-xl font-semibold leading-tight tracking-tight text-text-primary sm:text-2xl">
           {story.title}

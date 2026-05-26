@@ -3,6 +3,7 @@
 import { signOutAction } from "@/app/actions/auth";
 import { SignInLink } from "@/components/auth/sign-in-link";
 import { useAppSession } from "@/lib/hooks/use-app-session";
+import Link from "next/link";
 
 type SiteAuthControlsProps = {
   /** Header: bordered button; footer: text link */
@@ -24,7 +25,7 @@ export function SiteAuthControls({ variant = "header" }: SiteAuthControlsProps) 
         <form action={signOutAction} className="inline">
           <button
             type="submit"
-            className="transition hover:text-accent"
+            className="transition hover:text-accent active:opacity-80"
           >
             Sign out
           </button>
@@ -34,13 +35,19 @@ export function SiteAuthControls({ variant = "header" }: SiteAuthControlsProps) 
 
     return (
       <>
+        <Link
+          href="/account"
+          className="rounded-md px-2 py-1 text-xs text-text-muted transition hover:bg-elevated hover:text-text-primary active:opacity-80"
+        >
+          Account
+        </Link>
         <span className="hidden max-w-[12rem] truncate text-xs text-text-muted sm:inline">
           {session.user.name ?? session.user.email}
         </span>
         <form action={signOutAction}>
           <button
             type="submit"
-            className="rounded-md border border-border-subtle bg-elevated px-2.5 py-1 text-xs font-medium text-text-primary transition hover:border-gold-500/35"
+            className="rounded-md border border-border-subtle bg-elevated px-2.5 py-1 text-xs font-medium text-text-primary transition hover:border-gold-500/35 active:opacity-90"
           >
             Sign out
           </button>
@@ -51,12 +58,12 @@ export function SiteAuthControls({ variant = "header" }: SiteAuthControlsProps) 
 
   if (variant === "footer") {
     return (
-      <SignInLink className="transition hover:text-accent">Sign in</SignInLink>
+      <SignInLink className="transition hover:text-accent active:opacity-80">Sign in</SignInLink>
     );
   }
 
   return (
-    <SignInLink className="rounded-md border border-gold-500/35 bg-gold-500/10 px-2.5 py-1 text-xs font-semibold text-accent transition hover:bg-gold-500/15">
+    <SignInLink className="rounded-md border border-gold-500/35 bg-gold-500/10 px-2.5 py-1 text-xs font-semibold text-accent transition hover:bg-gold-500/15 active:opacity-90">
       Sign in
     </SignInLink>
   );

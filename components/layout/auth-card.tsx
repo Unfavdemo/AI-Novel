@@ -4,14 +4,17 @@ import type { ReactNode } from "react";
 type AuthCardProps = {
   title: string;
   description?: string;
+  /** Shown above the title (e.g. back navigation in WebView shells). */
+  leading?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
 };
 
-export function AuthCard({ title, description, children, footer }: AuthCardProps) {
+export function AuthCard({ title, description, leading, children, footer }: AuthCardProps) {
   return (
     <div className="mx-auto flex min-h-[55vh] w-full max-w-md flex-col justify-center px-3 py-10 sm:px-4">
       <div className="rounded-2xl border border-border-subtle bg-elevated/90 p-6 shadow-sm sm:p-8">
+        {leading ? <div className="mb-4">{leading}</div> : null}
         <p className="text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-500/90">
           {APP_NAME}
         </p>

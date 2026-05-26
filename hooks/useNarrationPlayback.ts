@@ -126,7 +126,7 @@ export function useNarrationPlayback(opts?: UseNarrationPlaybackOptions) {
         }
       }
     },
-    [stop, opts?.cast, opts?.castJson, opts?.storySeed],
+    [opts],
   );
 
   return {

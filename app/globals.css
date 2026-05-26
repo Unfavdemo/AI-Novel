@@ -1,5 +1,31 @@
 @import "tailwindcss";
 
+/* --- Mobile / WebView shell: reduce web artifacts; allow selection in form fields only --- */
+input,
+textarea,
+select,
+[contenteditable="true"],
+.select-text {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+input::selection,
+textarea::selection,
+select::selection,
+[contenteditable="true"]::selection,
+.select-text::selection {
+  background: var(--selection-bg);
+  color: var(--text-primary);
+}
+
+/** Primary scroll regions: vertical inertia on iOS WebViews */
+.scroll-touch {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Dark default (matches app before theme script runs). Light: `html.light` from next-themes. */
 :root {
   color-scheme: dark;
@@ -86,21 +112,15 @@ html.light {
 
 html {
   color-scheme: dark;
-}
-
-html.light {
-  color-scheme: light;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
+  user-select: none;
+  -webkit-user-select: none;
   background: var(--surface);
   color: var(--text-primary);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
-}
-
-::selection {
-  background: var(--selection-bg);
-  color: var(--text-primary);
 }
 
 .manuscript-editor::-webkit-scrollbar {

@@ -52,7 +52,7 @@ export function verifyChapterUnlockPayment(
       code: "PAYMENT_NOT_VERIFIED",
       message: stripeConfigured
         ? "Complete checkout to unlock this chapter."
-        : "Paid unlocks are not available yet. Stripe checkout is coming soon.",
+        : "Paid unlocks require checkout when enabled on the server.",
       status: 402,
     };
   }

@@ -7,7 +7,7 @@ import {
 } from "@/lib/api/story-listing";
 import { saveAgentStory } from "@/lib/api/studio";
 import { STORY_CATEGORY_OPTIONS } from "@/lib/listing-constants";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 
 type AgentSaveModalProps = {
   open: boolean;
@@ -47,22 +47,24 @@ export function AgentSaveModal({
 
   useEffect(() => {
     if (open && !wasOpen.current) {
-      setVisibility("private");
-      setError(null);
-      if (initialMetadata?.title) {
-        applyMetadata(initialMetadata);
-      } else if (draftBody.trim()) {
-        void fetchAgentListingMetadata(agentId)
-          .then(applyMetadata)
-          .catch(() => {
-            const first = draftBody
-              .split("\n")
-              .find((l) => l.trim())
-              ?.trim()
-              .slice(0, 120);
-            setTitle(first ?? "Untitled manuscript");
-          });
-      }
+      startTransition(() => {
+        setVisibility("private");
+        setError(null);
+        if (initialMetadata?.title) {
+          applyMetadata(initialMetadata);
+        } else if (draftBody.trim()) {
+          void fetchAgentListingMetadata(agentId)
+            .then(applyMetadata)
+            .catch(() => {
+              const first = draftBody
+                .split("\n")
+                .find((l) => l.trim())
+                ?.trim()
+                .slice(0, 120);
+              setTitle(first ?? "Untitled manuscript");
+            });
+        }
+      });
     }
     wasOpen.current = open;
   }, [open, draftBody, agentId, initialMetadata]);

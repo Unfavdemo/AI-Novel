@@ -14,7 +14,7 @@ import {
 import type { StoryGenerationParams } from "@/lib/api/llm";
 import { generateNextChapter } from "@/lib/api/stories";
 import { DEFAULT_CHAPTER_TARGET_CHARACTERS } from "@/lib/chapter-length";
-import { useCallback, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 
 const DEFAULT_CONTROLS: StoryGenerationParams = {
   genre: "Literary thriller",
@@ -93,7 +93,9 @@ export function useStudioWorkspace() {
 
   useEffect(() => {
     if (!activeThreadId) return;
-    void loadThread(activeThreadId);
+    startTransition(() => {
+      void loadThread(activeThreadId);
+    });
   }, [activeThreadId, loadThread]);
 
   const selectThread = useCallback((threadId: string) => {
@@ -194,7 +196,7 @@ export function useStudioWorkspace() {
         setIsGeneratingChapter(false);
       }
     },
-    [agent?.storyId, refreshThreads],
+    [agent, refreshThreads],
   );
 
   const afterStorySaved = useCallback(async () => {

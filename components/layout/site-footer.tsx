@@ -6,17 +6,17 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto border-t border-border-subtle bg-elevated/50">
+    <footer className="mt-auto border-t border-border-subtle bg-elevated/50 pb-[max(0px,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-3 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-4 md:px-5">
         <div>
           <p className="text-sm font-semibold text-text-primary">{APP_NAME}</p>
           <p className="mt-0.5 max-w-sm text-xs text-text-muted">{APP_TAGLINE}</p>
         </div>
         <nav className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
-          <Link href="/" className="transition hover:text-accent">
+          <Link href="/" className="transition hover:text-accent active:opacity-80">
             Discover
           </Link>
-          <Link href="/library" className="transition hover:text-accent">
+          <Link href="/library" className="transition hover:text-accent active:opacity-80">
             Library
           </Link>
           <SiteAuthControls variant="footer" />

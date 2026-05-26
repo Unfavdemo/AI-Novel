@@ -3,6 +3,7 @@
 import { SignInLink } from "@/components/auth/sign-in-link";
 import { StoreListenButton } from "@/components/book/StoreListenButton";
 import { PageShell } from "@/components/page-shell";
+import { MobileBackBar } from "@/components/layout/mobile-back-bar";
 import { useAppSession } from "@/lib/hooks/use-app-session";
 import { readResponseJson } from "@/lib/read-response-json";
 import Link from "next/link";
@@ -158,13 +159,8 @@ export function StoreChapterClient({
   if (error && !chapter) {
     return (
       <PageShell max="reader">
+        <MobileBackBar href={`/store/${seriesId}`} label="Series" className="mb-4" />
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-        <Link
-          href={`/store/${seriesId}`}
-          className="mt-3 inline-block text-sm text-gold-400"
-        >
-          Back to series
-        </Link>
       </PageShell>
     );
   }
@@ -172,6 +168,7 @@ export function StoreChapterClient({
   if (loading && !chapter) {
     return (
       <PageShell max="reader">
+        <MobileBackBar href={`/store/${seriesId}`} label="Series" className="mb-4" />
         <p className="text-sm text-text-muted">Loading…</p>
       </PageShell>
     );
@@ -181,32 +178,31 @@ export function StoreChapterClient({
 
   return (
     <PageShell max="reader">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle pb-2.5 text-[11px]">
-        <Link
-          href={`/store/${seriesId}`}
-          className="font-medium uppercase tracking-wide text-gold-400/90 hover:text-gold-300"
-        >
-          Series
-        </Link>
-        <div className="flex gap-1">
-          {nav.prevId ? (
-            <Link
-              href={`/store/${seriesId}/c/${nav.prevId}`}
-              className="rounded border border-border-subtle px-2 py-0.5 text-text-muted hover:border-gold-500/35"
-            >
-              Prev
-            </Link>
-          ) : null}
-          {nav.nextId ? (
-            <Link
-              href={`/store/${seriesId}/c/${nav.nextId}`}
-              className="rounded border border-border-subtle px-2 py-0.5 text-text-muted hover:border-gold-500/35"
-            >
-              Next
-            </Link>
-          ) : null}
-        </div>
-      </div>
+      <MobileBackBar
+        href={`/store/${seriesId}`}
+        label="Series"
+        className="mb-3"
+        endSlot={
+          <>
+            {nav.prevId ? (
+              <Link
+                href={`/store/${seriesId}/c/${nav.prevId}`}
+                className="rounded border border-border-subtle px-2 py-0.5 text-text-muted hover:border-gold-500/35 active:opacity-80"
+              >
+                Prev
+              </Link>
+            ) : null}
+            {nav.nextId ? (
+              <Link
+                href={`/store/${seriesId}/c/${nav.nextId}`}
+                className="rounded border border-border-subtle px-2 py-0.5 text-text-muted hover:border-gold-500/35 active:opacity-80"
+              >
+                Next
+              </Link>
+            ) : null}
+          </>
+        }
+      />
 
       {chapter ? (
         <header className="mt-3 border-b border-border-subtle pb-3">
@@ -236,8 +232,8 @@ export function StoreChapterClient({
             Chapter locked. Unlock to read the full chapter
             {(chapter?.effectivePriceCents ?? chapter?.priceCents) != null &&
             (chapter?.effectivePriceCents ?? chapter?.priceCents)! > 0
-              ? ` ($${(((chapter?.effectivePriceCents ?? chapter?.priceCents) ?? 0) / 100).toFixed(2)} — Stripe checkout coming soon).`
-              : " (paid unlock — Stripe checkout coming soon)."}
+              ? ` ($${(((chapter?.effectivePriceCents ?? chapter?.priceCents) ?? 0) / 100).toFixed(2)} — checkout is not enabled in this build).`
+              : " (paid unlock — checkout is not enabled in this build)."}
           </p>
           <pre className="reader-surface whitespace-pre-wrap rounded-lg p-3 font-serif text-[13px] leading-relaxed text-text-muted">
             {teaser}

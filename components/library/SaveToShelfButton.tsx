@@ -2,7 +2,7 @@
 
 import { SignInLink } from "@/components/auth/sign-in-link";
 import { useAppSession } from "@/lib/hooks/use-app-session";
-import { useCallback, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 
 export function SaveToShelfButton({
   storyId,
@@ -30,7 +30,9 @@ export function SaveToShelfButton({
   }, [storyId, isSignedIn]);
 
   useEffect(() => {
-    void load();
+    startTransition(() => {
+      void load();
+    });
   }, [load]);
 
   const toggle = async () => {

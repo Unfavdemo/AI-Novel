@@ -2,13 +2,13 @@
 
 import { AdminWorkspace } from "@/components/admin/AdminWorkspace";
 import { AgentSaveModal } from "@/components/admin/AgentSaveModal";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { SplitTrackTimeline } from "@/components/timeline/SplitTrackTimeline";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { VoiceConsole } from "@/components/voice/VoiceConsole";
 import type { StoryListingMetadata } from "@/lib/api/story-listing";
 import { useVoiceSegments } from "@/hooks/useVoiceSegments";
 import { ADMIN_WORKSPACE_NAME } from "@/lib/brand";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -27,7 +27,7 @@ export function Dashboard() {
   const afterStorySavedRef = useRef<(() => Promise<void>) | null>(null);
 
   return (
-    <div className="studio-page-bg flex min-h-screen flex-col">
+    <div className="studio-page-bg flex min-h-dvh flex-col">
       <div className="border-b border-border-subtle bg-elevated/80 px-3 py-2.5 sm:px-4 md:px-5">
         <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-3">
           <div>
@@ -47,7 +47,7 @@ export function Dashboard() {
             <button
               type="button"
               onClick={() => setVoiceOpen(true)}
-              className="rounded-lg border border-border-subtle px-3 py-2 text-sm font-medium text-text-primary transition hover:border-gold-500/35"
+              className="rounded-lg border border-border-subtle px-3 py-2 text-sm font-medium text-text-primary transition hover:border-gold-500/35 active:opacity-90"
             >
               Narration
             </button>
@@ -55,22 +55,24 @@ export function Dashboard() {
         </div>
       </div>
 
-      <main className="mx-auto flex w-full max-w-[90rem] flex-1 flex-col gap-4 px-3 py-4 sm:px-4 md:px-5">
-        <AdminWorkspace
-          onDraftChange={setTimelineText}
-          registerAfterStorySaved={(fn) => {
-            afterStorySavedRef.current = fn;
-          }}
-          onRequestSave={({ agentId, draftBody, metadata }) => {
-            setAgentIdForSave(agentId);
-            setDraftForSave(draftBody);
-            setMetadataForSave(metadata);
-            setSaveOpen(true);
-          }}
-        />
-        {timelineText.trim() ? (
-          <SplitTrackTimeline segments={segments} castMapping={cast} />
-        ) : null}
+      <main className="scroll-touch mx-auto flex w-full max-w-[90rem] flex-1 flex-col gap-4 px-3 py-4 sm:px-4 md:px-5">
+        <ErrorBoundary>
+          <AdminWorkspace
+            onDraftChange={setTimelineText}
+            registerAfterStorySaved={(fn) => {
+              afterStorySavedRef.current = fn;
+            }}
+            onRequestSave={({ agentId, draftBody, metadata }) => {
+              setAgentIdForSave(agentId);
+              setDraftForSave(draftBody);
+              setMetadataForSave(metadata);
+              setSaveOpen(true);
+            }}
+          />
+          {timelineText.trim() ? (
+            <SplitTrackTimeline segments={segments} castMapping={cast} />
+          ) : null}
+        </ErrorBoundary>
       </main>
 
       <VoiceConsole

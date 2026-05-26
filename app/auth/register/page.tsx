@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RegisterForm } from "./register-form";
 import { AuthCard } from "@/components/layout/auth-card";
+import { MobileBackBar } from "@/components/layout/mobile-back-bar";
 
 type RegisterPageProps = {
   searchParams?: Promise<{ callbackUrl?: string | string[] }>;
@@ -16,6 +17,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
 
   return (
     <AuthCard
+      leading={<MobileBackBar href="/" label="Home" className="border-0 pb-0" />}
       title="Create your account"
       description="Join as a reader to unlock chapters, save books to your shelf, and join story discussions."
       footer={

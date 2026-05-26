@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 type ThemeChoice = "light" | "dark" | "system";
 
@@ -48,11 +48,11 @@ function MoonIcon({ className }: { className?: string }) {
 
 export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const active: ThemeChoice =
     theme === "light" || theme === "dark" || theme === "system" ? theme : "system";

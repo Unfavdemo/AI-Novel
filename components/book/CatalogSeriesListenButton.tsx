@@ -1,7 +1,7 @@
 "use client";
 
 import { StoreListenButton } from "@/components/book/StoreListenButton";
-import { useCallback, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 
 export function CatalogSeriesListenButton({
   seriesId,
@@ -40,7 +40,9 @@ export function CatalogSeriesListenButton({
   }, [seriesId]);
 
   useEffect(() => {
-    void load();
+    startTransition(() => {
+      void load();
+    });
   }, [load]);
 
   if (loading) {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { signInAsGuest } from "@/app/auth/signin/actions";
 import { SignInEmailForm } from "@/app/auth/signin/sign-in-email-form";
 import { AuthCard } from "@/components/layout/auth-card";
+import { MobileBackBar } from "@/components/layout/mobile-back-bar";
 
 type SignInPageProps = {
   searchParams?: Promise<{
@@ -42,6 +43,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
   return (
     <AuthCard
+      leading={<MobileBackBar href="/" label="Home" className="border-0 pb-0" />}
       title={isStudioSignIn ? "Admin sign-in" : "Welcome back"}
       description={
         isStudioSignIn
