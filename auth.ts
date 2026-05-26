@@ -1,3 +1,4 @@
+import { AuthError } from "@auth/core/errors";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
@@ -9,6 +10,7 @@ import {
   users,
   verificationTokens,
 } from "@/db/schema";
+import { authorizeAdminEnvCredentials } from "@/lib/server/admin-user";
 import { verifyPassword } from "@/lib/password";
 import { eq } from "drizzle-orm";
 
@@ -36,6 +38,15 @@ function resolveAuthSecret(): string {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: resolveAuthSecret(),
+  logger: {
+    error(error) {
+      const type = error instanceof AuthError ? error.type : error.name;
+      if (type === "JWTSessionError") {
+        return;
+      }
+      console.error(`[auth][error] ${type}:`, error.message);
+    },
+  },
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
@@ -47,55 +58,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // rejects that config — clients see `{ message: "...server configuration..." }`).
   session: { strategy: "jwt" },
   providers: [
-    Credentials({
-      id: "admin",
-      name: "Admin",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        const adminEmail = process.env.ADMIN_EMAIL?.trim();
-        const adminPassword = process.env.ADMIN_PASSWORD ?? "";
-        const emailRaw =
-          typeof credentials?.email === "string" ? credentials.email.trim() : "";
-        const passwordRaw =
-          typeof credentials?.password === "string" ? credentials.password : "";
-
-        if (!adminEmail || !adminPassword) return null;
-        if (emailRaw.toLowerCase() !== adminEmail.toLowerCase()) return null;
-        if (passwordRaw !== adminPassword) return null;
-
-        const [existing] = await db
-          .select({ id: users.id, name: users.name, email: users.email })
-          .from(users)
-          .where(eq(users.email, adminEmail))
-          .limit(1);
-
-        if (existing) {
-          return {
-            id: existing.id,
-            name: existing.name ?? "Admin",
-            email: existing.email ?? adminEmail,
-          };
-        }
-
-        const [created] = await db
-          .insert(users)
-          .values({
-            name: "Admin",
-            email: adminEmail,
-          })
-          .returning({ id: users.id, name: users.name, email: users.email });
-
-        if (!created) return null;
-        return {
-          id: created.id,
-          name: created.name ?? "Admin",
-          email: created.email ?? adminEmail,
-        };
-      },
-    }),
     Credentials({
       id: "user",
       name: "Account",
@@ -110,10 +72,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           typeof credentials?.password === "string" ? credentials.password : "";
         if (!emailRaw || !passwordRaw) return null;
 
-        const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-        if (adminEmail && emailRaw === adminEmail) {
-          return null;
-        }
+        const adminUser = await authorizeAdminEnvCredentials(emailRaw, passwordRaw);
+        if (adminUser) return adminUser;
 
         const [row] = await db
           .select({

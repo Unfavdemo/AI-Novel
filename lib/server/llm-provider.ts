@@ -42,7 +42,7 @@ export async function generateStoryWithProvider(
         {
           role: "system",
           content:
-            "You write dramatic serial fiction with concise scene-level pacing.",
+            "You write dramatic serial fiction with scene-level pacing. Produce full chapters suitable for roughly ten minutes of spoken narration when asked to generate new prose.",
         },
         {
           role: "user",
@@ -83,6 +83,8 @@ export type ChatCompletionMessage = {
 export async function generateChatWithProvider(input: {
   systemPrompt: string;
   messages: ChatCompletionMessage[];
+  /** Raise for long chapter JSON (default leaves model limit). */
+  maxTokens?: number;
 }): Promise<LlmResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -100,38 +102,43 @@ export async function generateChatWithProvider(input: {
     })),
   ];
 
+  const payload: Record<string, unknown> = {
+    model,
+    temperature: 0.85,
+    messages: openAiMessages,
+  };
+  if (input.maxTokens != null && Number.isFinite(input.maxTokens)) {
+    payload.max_tokens = Math.min(16_384, Math.max(256, Math.floor(input.maxTokens)));
+  }
+
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "content-type": "application/json",
       authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model,
-      temperature: 0.85,
-      messages: openAiMessages,
-    }),
-    signal: timeoutSignal(45_000),
+    body: JSON.stringify(payload),
+    signal: timeoutSignal(120_000),
   });
 
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`LLM provider error (${res.status}): ${body.slice(0, 200)}`);
+    const errBody = await res.text();
+    throw new Error(`LLM provider error (${res.status}): ${errBody.slice(0, 200)}`);
   }
 
-  const body = (await res.json()) as {
+  const completion = (await res.json()) as {
     choices?: { message?: { content?: string } }[];
     usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
 
-  const text = body.choices?.[0]?.message?.content?.trim();
+  const text = completion.choices?.[0]?.message?.content?.trim();
   if (!text) throw new Error("LLM provider returned empty output");
 
   return {
     text,
     provider: "openai",
     model,
-    promptTokens: body.usage?.prompt_tokens ?? 0,
-    completionTokens: body.usage?.completion_tokens ?? 0,
+    promptTokens: completion.usage?.prompt_tokens ?? 0,
+    completionTokens: completion.usage?.completion_tokens ?? 0,
   };
 }

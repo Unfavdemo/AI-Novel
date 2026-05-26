@@ -1,3 +1,4 @@
+import { DEFAULT_CHAPTER_TARGET_CHARACTERS } from "@/lib/chapter-length";
 import { generateStoryWithProvider } from "@/lib/server/llm-provider";
 import { requireAdmin } from "@/lib/server/require-admin";
 import {
@@ -39,7 +40,10 @@ export async function POST(req: Request) {
   const params = {
     genre: typeof body.genre === "string" ? body.genre : "Literary thriller",
     complexity: typeof body.complexity === "string" ? body.complexity : "High",
-    targetCharacterCount: parseNumber(body.targetCharacterCount, 8000),
+    targetCharacterCount: parseNumber(
+      body.targetCharacterCount,
+      DEFAULT_CHAPTER_TARGET_CHARACTERS,
+    ),
     mood: typeof body.mood === "string" ? body.mood : "Noir elegance",
     literarySophistication: parseNumber(body.literarySophistication, 58),
     narrativeTension: parseNumber(body.narrativeTension, 62),

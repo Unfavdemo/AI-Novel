@@ -1,14 +1,18 @@
 "use client";
 
-import { playChapterSequence, playNarration } from "@/lib/audio/playNarration";
-import type { VoiceCastMap } from "@/lib/speaker-voice";
-import { parseVoiceCastJson } from "@/lib/speaker-voice";
-import { useCallback, useRef, useState } from "react";
+import { PlaybackControls } from "@/components/book/PlaybackControls";
+import {
+  useNarrationPlayback,
+  type NarrationSource,
+} from "@/hooks/useNarrationPlayback";
+import { parseVoiceCastJson, type VoiceCastMap } from "@/lib/speaker-voice";
+import { useCallback, useMemo } from "react";
 
 export function ListenButton({
   text,
   chapters,
   voiceCastJson,
+  storySeed,
   label = "Listen",
   className = "",
   size = "sm",
@@ -16,87 +20,56 @@ export function ListenButton({
   text?: string;
   chapters?: { title: string; body: string }[];
   voiceCastJson?: string | null;
+  /** Stable id (story/series) so each book gets a distinct voice palette. */
+  storySeed?: string;
   label?: string;
   className?: string;
   size?: "sm" | "md";
 }) {
-  const [playing, setPlaying] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const cast: VoiceCastMap | undefined = useMemo(
+    () => (voiceCastJson ? parseVoiceCastJson(voiceCastJson) : undefined),
+    [voiceCastJson],
+  );
 
-  const cast: VoiceCastMap | undefined = voiceCastJson
-    ? parseVoiceCastJson(voiceCastJson)
-    : undefined;
+  const { state, status, error, start, pause, resume, stop } = useNarrationPlayback({
+    cast,
+    castJson: voiceCastJson ?? undefined,
+    storySeed,
+  });
 
-  const stop = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    setPlaying(false);
-    setStatus(null);
-  }, []);
-
-  const play = useCallback(async () => {
-    if (playing) {
-      stop();
-      return;
+  const source: NarrationSource | null = useMemo(() => {
+    if (chapters && chapters.length > 0) {
+      return { kind: "chapters", chapters };
     }
-    setError(null);
-    setPlaying(true);
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    try {
-      if (chapters && chapters.length > 0) {
-        await playChapterSequence(chapters.filter((c) => c.body.trim()), {
-          cast,
-          castJson: voiceCastJson ?? undefined,
-          signal: controller.signal,
-          onChapterStart: (n, title) => setStatus(`Chapter ${n}: ${title}`),
-        });
-      } else if (text?.trim()) {
-        await playNarration(text, {
-          cast,
-          castJson: voiceCastJson ?? undefined,
-          signal: controller.signal,
-          onProgress: (p) =>
-            setStatus(`Line ${p.segmentIndex}/${p.segmentTotal} — ${p.label}`),
-        });
-      } else {
-        throw new Error("Nothing to narrate");
-      }
-    } catch (e) {
-      if (!controller.signal.aborted) {
-        setError(e instanceof Error ? e.message : "Playback failed");
-      }
-    } finally {
-      if (!controller.signal.aborted) {
-        setPlaying(false);
-        setStatus(null);
-      }
-      abortRef.current = null;
+    if (text?.trim()) {
+      return { kind: "text", text };
     }
-  }, [playing, stop, text, chapters, cast, voiceCastJson]);
+    return null;
+  }, [text, chapters]);
 
-  const sizeClass =
-    size === "md"
-      ? "px-3 py-1 text-xs"
-      : "px-2 py-0.5 text-[11px]";
+  const handlePlay = useCallback(() => {
+    if (!source) return;
+    void start(source).catch(() => {
+      /* errors surfaced via hook state; abort/stop must not be unhandled */
+    });
+  }, [source, start]);
 
   return (
     <div className={className}>
-      <button
-        type="button"
-        onClick={() => void play()}
-        className={`rounded-md border border-gold-500/35 font-medium text-accent hover:bg-gold-500/10 ${sizeClass}`}
-      >
-        {playing ? "Stop" : label}
-      </button>
+      <PlaybackControls
+        state={state}
+        label={label}
+        size={size}
+        onPlay={handlePlay}
+        onPause={pause}
+        onResume={resume}
+        onStop={stop}
+      />
       {status ? (
         <span className="ml-2 text-[10px] text-text-faint">{status}</span>
       ) : null}
       {error ? (
-        <p className="mt-1 text-[10px] text-red-400" role="alert">
+        <p className="mt-1 max-w-md text-[10px] leading-snug text-red-400" role="alert">
           {error}
         </p>
       ) : null}

@@ -1,6 +1,7 @@
 import type { StoryGenerationParams } from "@/lib/api/llm";
+import { minChapterLengthForTarget } from "@/lib/chapter-length";
 import { generateChatWithProvider } from "@/lib/server/llm-provider";
-import { passesStoryQualityChecks } from "@/lib/server/prompt-templates";
+import { passesChapterQualityChecks } from "@/lib/server/prompt-templates";
 
 export type ChapterDraft = {
   title: string;
@@ -38,48 +39,68 @@ export async function generateNextChapterWithProvider(input: {
     input.userDirection?.trim() ||
     "Continue the serial with the next chapter. Advance plot and character arcs.";
 
-  const result = await generateChatWithProvider({
-    systemPrompt: [
-      "You write serialized audiobook fiction with [Speaker] voice tags.",
-      "Return ONLY valid JSON with keys: title (string), body (string).",
-      "The body must be a full chapter excerpt with at least 3 [Speaker] tagged turns.",
-      "Do not repeat prior chapters verbatim; continue the story forward.",
-    ].join(" "),
-    messages: [
-      {
-        role: "user",
-        content: [
-          `Series: ${input.storyTitle}`,
-          input.storyDescription
-            ? `Description: ${input.storyDescription}`
-            : "",
-          `Genre: ${input.controls.genre}`,
-          `Mood: ${input.controls.mood}`,
-          `Author direction: ${direction}`,
-          "",
-          "--- Previous chapters ---",
-          prior || "(This is the first chapter.)",
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      },
-    ],
-  });
+  const targetChars = input.controls.targetCharacterCount;
+  const minLength = minChapterLengthForTarget(targetChars);
+  let lastReasons: string[] = [];
 
-  const parsed = extractJsonObject(result.text) as Partial<ChapterDraft>;
-  const title =
-    typeof parsed.title === "string" && parsed.title.trim()
-      ? parsed.title.trim().slice(0, 200)
-      : `Chapter ${input.previousChapters.length + 1}`;
-  const body =
-    typeof parsed.body === "string" && parsed.body.trim()
-      ? parsed.body.trim()
-      : result.text;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const retryNote =
+      attempt === 0
+        ? ""
+        : `\nRETRY: Previous draft was too short or failed checks (${lastReasons.join(", ")}). The body MUST be at least ${minLength} characters with [Speaker] tags throughout.`;
 
-  const quality = passesStoryQualityChecks(body);
-  if (!quality.ok) {
-    throw new Error(`Chapter failed quality checks: ${quality.reasons.join(", ")}`);
+    const result = await generateChatWithProvider({
+      maxTokens: 16_384,
+      systemPrompt: [
+        "You write serialized audiobook fiction with [Speaker] voice tags.",
+        "Return ONLY valid JSON with keys: title (string), body (string).",
+        "The body must be a full chapter with at least 3 [Speaker] tagged turns.",
+        `Target length: about ${targetChars} characters (roughly ten minutes of spoken narration).`,
+        `Minimum body length: ${minLength} characters.`,
+        "Use multiple scenes, sustained pacing, and natural dialogue — not a short vignette.",
+        "Do not repeat prior chapters verbatim; continue the story forward.",
+        retryNote,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      messages: [
+        {
+          role: "user",
+          content: [
+            `Series: ${input.storyTitle}`,
+            input.storyDescription
+              ? `Description: ${input.storyDescription}`
+              : "",
+            `Genre: ${input.controls.genre}`,
+            `Mood: ${input.controls.mood}`,
+            `Target character count: ${targetChars}`,
+            `Author direction: ${direction}`,
+            "",
+            "--- Previous chapters ---",
+            prior || "(This is the first chapter.)",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        },
+      ],
+    });
+
+    const parsed = extractJsonObject(result.text) as Partial<ChapterDraft>;
+    const title =
+      typeof parsed.title === "string" && parsed.title.trim()
+        ? parsed.title.trim().slice(0, 200)
+        : `Chapter ${input.previousChapters.length + 1}`;
+    const body =
+      typeof parsed.body === "string" && parsed.body.trim()
+        ? parsed.body.trim()
+        : result.text;
+
+    const quality = passesChapterQualityChecks(body, minLength);
+    if (quality.ok) {
+      return { title, body };
+    }
+    lastReasons = quality.reasons;
   }
 
-  return { title, body };
+  throw new Error(`Chapter failed quality checks: ${lastReasons.join(", ")}`);
 }

@@ -1,8 +1,11 @@
 "use client";
 
+import { CatalogSeriesListenButton } from "@/components/book/CatalogSeriesListenButton";
+import { SignInLink } from "@/components/auth/sign-in-link";
+import { SaveToShelfButton } from "@/components/library/SaveToShelfButton";
 import { PageShell } from "@/components/page-shell";
 import { readResponseJson } from "@/lib/read-response-json";
-import { useSession } from "next-auth/react";
+import { useAppSession } from "@/lib/hooks/use-app-session";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -12,6 +15,7 @@ type ChapterRow = {
   title: string;
   isFreePreview: boolean;
   priceCents: number | null;
+  effectivePriceCents?: number | null;
   access: string;
   canReadBody: boolean;
 };
@@ -28,7 +32,7 @@ type SeriesPayload = {
 };
 
 export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
-  const { status } = useSession();
+  const { isSignedIn, isLoading: sessionLoading } = useAppSession();
   const [series, setSeries] = useState<SeriesPayload | null>(null);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -116,12 +120,15 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
         >
           Discover
         </Link>
-        <Link
-          href={`/library/${series.id}`}
-          className="text-[11px] text-text-muted underline decoration-border-subtle underline-offset-2 hover:text-gold-400"
-        >
-          Discuss
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <SaveToShelfButton storyId={seriesId} />
+          <Link
+            href={`/library/${series.id}`}
+            className="text-[11px] text-text-muted underline decoration-border-subtle underline-offset-2 hover:text-gold-400"
+          >
+            Discuss
+          </Link>
+        </div>
       </div>
 
       <header className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -155,6 +162,9 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
             {[series.genre, series.mood].filter(Boolean).join(" · ")}
           </p>
         )}
+        <div className="mt-4">
+          <CatalogSeriesListenButton seriesId={seriesId} />
+        </div>
         </div>
       </header>
 
@@ -181,11 +191,12 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
                     : c.canReadBody
                       ? "Unlocked"
                       : "Locked"}
-                  {c.priceCents != null && c.priceCents > 0
-                    ? ` · $${(c.priceCents / 100).toFixed(2)}`
+                  {(c.effectivePriceCents ?? c.priceCents) != null &&
+                  (c.effectivePriceCents ?? c.priceCents)! > 0
+                    ? ` · $${(((c.effectivePriceCents ?? c.priceCents) ?? 0) / 100).toFixed(2)}`
                     : ""}
                   {!c.canReadBody && !c.isFreePreview
-                    ? " · Unlock grants full chapter access"
+                    ? " · Paywall (Stripe soon)"
                     : ""}
                 </span>
               </div>
@@ -197,7 +208,9 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
                   >
                     Read
                   </Link>
-                ) : status === "authenticated" ? (
+                ) : sessionLoading ? (
+                  <span className="text-[11px] text-text-faint">…</span>
+                ) : isSignedIn ? (
                   <button
                     type="button"
                     onClick={() => void unlock(c.id)}
@@ -206,12 +219,9 @@ export function StoreSeriesClient({ seriesId }: { seriesId: string }) {
                     Unlock
                   </button>
                 ) : (
-                  <Link
-                    href="/auth/signin"
-                    className="text-[11px] text-gold-400 underline"
-                  >
+                  <SignInLink className="text-[11px] text-gold-400 underline">
                     Sign in
-                  </Link>
+                  </SignInLink>
                 )}
               </div>
             </li>

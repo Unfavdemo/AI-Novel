@@ -2,6 +2,7 @@
 
 import { ListenButton } from "@/components/book/ListenButton";
 import { PageShell } from "@/components/page-shell";
+import { useAppDialog } from "@/components/ui/app-dialog-provider";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -16,6 +17,7 @@ type ChapterRow = {
 };
 
 export function LibraryChaptersClient({ storyId }: { storyId: string }) {
+  const { prompt, confirm, form } = useAppDialog();
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,7 +84,13 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
   };
 
   const deleteChapter = async (id: string) => {
-    if (!confirm("Delete this chapter?")) return;
+    const ok = await confirm({
+      title: "Delete chapter",
+      description: "This chapter will be removed permanently.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     const res = await fetch(`/api/stories/${storyId}/chapters/${id}`, {
       method: "DELETE",
     });
@@ -90,7 +98,14 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
   };
 
   const generateChapter = async () => {
-    const direction = prompt("Optional direction for the next chapter?") ?? "";
+    const direction =
+      (await prompt({
+        title: "Generate next chapter",
+        description: "Optional direction for the next chapter?",
+        placeholder: "e.g. Raise the stakes, introduce a new witness…",
+        optional: true,
+        submitLabel: "Generate",
+      })) ?? "";
     setGenerating(true);
     try {
       const res = await fetch(
@@ -115,17 +130,35 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
   };
 
   const addChapter = async () => {
-    const title = prompt("Chapter title?");
-    if (!title?.trim()) return;
-    const body = prompt("Paste chapter body (or leave empty for placeholder).") ?? "";
-    const text = body.trim() || "(Write this chapter in the studio.)";
+    const values = await form({
+      title: "Add chapter",
+      description: "Create a blank chapter you can edit below.",
+      submitLabel: "Add chapter",
+      fields: [
+        {
+          name: "title",
+          label: "Title",
+          placeholder: "Chapter title",
+          required: true,
+        },
+        {
+          name: "body",
+          label: "Body",
+          placeholder: "Paste chapter text, or leave empty for a placeholder",
+          multiline: true,
+        },
+      ],
+    });
+    if (!values) return;
+    const title = values.title?.trim();
+    if (!title) return;
+    const text = values.body?.trim() || "(Add chapter content before publishing.)";
     const res = await fetch(`/api/stories/${storyId}/chapters`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+        body: JSON.stringify({
         title: title.trim(),
         body: text,
-        isFreePreview: false,
       }),
     });
     if (res.ok) await load();
@@ -170,7 +203,7 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
             Chapters
           </h1>
           <p className="mt-0.5 text-xs text-text-muted">
-            Order, previews, and copy match the store listing.
+            Chapter 1 is free for readers; later chapters are paywalled (Stripe checkout coming).
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -202,6 +235,8 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
               <label className="text-xs text-text-muted">
                 Sort index
                 <input
+                  id={`chapter-${c.id}-sort-index`}
+                  name="sortIndex"
                   type="number"
                   min={0}
                   className="ml-2 w-20 rounded border border-border-subtle bg-obsidian-950/70 px-2 py-1 text-sm text-text-primary"
@@ -215,6 +250,8 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
               </label>
               <label className="flex items-center gap-2 text-xs text-text-muted">
                 <input
+                  id={`chapter-${c.id}-free-preview`}
+                  name="isFreePreview"
                   type="checkbox"
                   checked={c.isFreePreview}
                   onChange={(e) =>
@@ -241,15 +278,20 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
               <ListenButton
                 text={c.body}
                 voiceCastJson={voiceCastJson}
+                storySeed={storyId}
                 label="Listen"
               />
             </div>
             <input
+              id={`chapter-${c.id}-title`}
+              name="title"
               className="mt-2 w-full rounded-md border border-border-subtle bg-obsidian-950/70 px-2.5 py-1.5 text-sm font-medium text-text-primary"
               value={c.title}
               onChange={(e) => updateLocal(c.id, { title: e.target.value })}
             />
             <textarea
+              id={`chapter-${c.id}-body`}
+              name="body"
               className="mt-2 min-h-[140px] w-full rounded-md border border-border-subtle bg-obsidian-950/70 px-2.5 py-2 font-serif text-sm leading-relaxed text-text-primary"
               value={c.body}
               onChange={(e) => updateLocal(c.id, { body: e.target.value })}
@@ -257,6 +299,8 @@ export function LibraryChaptersClient({ storyId }: { storyId: string }) {
             <label className="mt-2 flex items-center gap-2 text-xs text-text-muted">
               Price (cents, optional)
               <input
+                id={`chapter-${c.id}-price-cents`}
+                name="priceCents"
                 type="number"
                 min={0}
                 className="w-28 rounded border border-border-subtle bg-obsidian-950/70 px-2 py-1 text-sm text-text-primary"

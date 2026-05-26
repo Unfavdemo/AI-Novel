@@ -27,7 +27,7 @@ function safeRedirectPath(raw: unknown): string {
 function reservedReason(email: string): string | null {
   const admin = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   if (admin && email === admin) {
-    return "That address is reserved for the site administrator.";
+    return "That address is reserved. Sign in on the main sign-in page with your administrator password.";
   }
   if (email === GUEST_EMAIL) {
     return "That address is reserved. Choose a different email.";

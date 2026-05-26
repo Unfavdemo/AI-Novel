@@ -2,8 +2,9 @@
 
 import { AgentColumn } from "@/components/admin/AgentColumn";
 import { ChatColumn } from "@/components/admin/ChatColumn";
-import type { StoryListingMetadata } from "@/lib/api/story-listing";
+import { useAppDialog } from "@/components/ui/app-dialog-provider";
 import { useStudioWorkspace } from "@/hooks/useStudioWorkspace";
+import type { StoryListingMetadata } from "@/lib/api/story-listing";
 import { useCallback, useEffect, useState } from "react";
 
 type AdminWorkspaceProps = {
@@ -14,15 +15,26 @@ type AdminWorkspaceProps = {
     storyId: string | null;
   }) => void;
   onDraftChange?: (draft: string) => void;
+  onStorySaved?: (storyId: string) => void;
+  registerAfterStorySaved?: (fn: () => Promise<void>) => void;
 };
 
-export function AdminWorkspace({ onRequestSave, onDraftChange }: AdminWorkspaceProps) {
+export function AdminWorkspace({
+  onRequestSave,
+  onDraftChange,
+  registerAfterStorySaved,
+}: AdminWorkspaceProps) {
   const ws = useStudioWorkspace();
+  const { prompt } = useAppDialog();
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     onDraftChange?.(ws.draftBody);
   }, [ws.draftBody, onDraftChange]);
+
+  useEffect(() => {
+    registerAfterStorySaved?.(ws.afterStorySaved);
+  }, [registerAfterStorySaved, ws.afterStorySaved]);
 
   const handleNewChat = useCallback(async () => {
     setCreating(true);
@@ -49,7 +61,19 @@ export function AdminWorkspace({ onRequestSave, onDraftChange }: AdminWorkspaceP
       metadata: ws.metadata,
       storyId: ws.agent.storyId,
     });
-  }, [onRequestSave, ws.agent, ws.draftBody]);
+  }, [onRequestSave, ws.agent, ws.draftBody, ws.metadata]);
+
+  const handleGenerateChapter = useCallback(async () => {
+    const direction =
+      (await prompt({
+        title: "Generate next chapter",
+        description: "Optional direction for the next chapter?",
+        placeholder: "e.g. Raise the stakes, introduce a new witness…",
+        optional: true,
+        submitLabel: "Generate",
+      })) ?? "";
+    void ws.generateNextChapterForBook(direction.trim() || undefined);
+  }, [prompt, ws]);
 
   if (ws.loading) {
     return (
@@ -102,7 +126,11 @@ export function AdminWorkspace({ onRequestSave, onDraftChange }: AdminWorkspaceP
         onDraftChange={ws.setDraftBody}
         onSelectAgent={ws.selectThread}
         onSave={handleSave}
+        onGenerateChapter={handleGenerateChapter}
         canSave={!!ws.agent && !!ws.draftBody.trim()}
+        canGenerateChapter={Boolean(ws.agent?.storyId)}
+        isGeneratingChapter={ws.isGeneratingChapter}
+        chapterSuccess={ws.chapterSuccess}
       />
     </div>
   );

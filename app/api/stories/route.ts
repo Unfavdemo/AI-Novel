@@ -1,4 +1,5 @@
 import { db } from "@/db";
+import { defaultChapterPricingForSortIndex } from "@/lib/chapter-pricing";
 import { chapters, stories } from "@/db/schema";
 import { requireAdmin } from "@/lib/server/require-admin";
 import { NextResponse } from "next/server";
@@ -68,12 +69,14 @@ export async function POST(req: Request) {
       .returning({ id: stories.id });
 
     if (storyRow?.id) {
+      const pricing = defaultChapterPricingForSortIndex(0);
       await tx.insert(chapters).values({
         storyId: storyRow.id,
         sortIndex: 0,
         title: "Chapter 1",
         body: text,
-        isFreePreview: visibility === "public",
+        isFreePreview: pricing.isFreePreview,
+        priceCents: pricing.priceCents,
         updatedAt: new Date(),
       });
     }

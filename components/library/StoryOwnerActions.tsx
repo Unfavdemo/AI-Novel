@@ -1,5 +1,7 @@
 "use client";
 
+import { useAppDialog } from "@/components/ui/app-dialog-provider";
+import { useAppSession } from "@/lib/hooks/use-app-session";
 import {
   deleteStory,
   generateStoryCover,
@@ -22,6 +24,8 @@ export function StoryOwnerActions({
   onUpdated,
 }: StoryOwnerActionsProps) {
   const router = useRouter();
+  const { session, isSignedIn } = useAppSession();
+  const { confirm } = useAppDialog();
   const [busy, setBusy] = useState<"cover" | "listing" | "delete" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +38,9 @@ export function StoryOwnerActions({
     try {
       await fn();
       if (action === "delete") {
-        router.push("/library");
+        const dest =
+          isSignedIn && session?.user?.isAdmin === true ? "/studio" : "/library";
+        router.push(dest);
         router.refresh();
         return;
       }
@@ -86,16 +92,19 @@ export function StoryOwnerActions({
           type="button"
           disabled={busy !== null}
           onClick={() => {
-            if (
-              !confirm(
-                "Delete this story permanently? Chapters and listing data will be removed.",
-              )
-            ) {
-              return;
-            }
-            void run("delete", async () => {
-              await deleteStory(storyId);
-            });
+            void (async () => {
+              const ok = await confirm({
+                title: "Delete story",
+                description:
+                  "Delete this story permanently? Chapters and listing data will be removed.",
+                confirmLabel: "Delete",
+                destructive: true,
+              });
+              if (!ok) return;
+              await run("delete", async () => {
+                await deleteStory(storyId);
+              });
+            })();
           }}
           className={
             variant === "card"

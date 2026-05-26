@@ -5,6 +5,7 @@ import {
   studioThreads,
   type StudioMessageRole,
 } from "@/db/schema";
+import { minChapterLengthForTarget } from "@/lib/chapter-length";
 import { generateChatWithProvider } from "@/lib/server/llm-provider";
 import {
   buildAgentSystemPrompt,
@@ -14,6 +15,7 @@ import {
 import { parseControlsJson } from "@/lib/server/studio-defaults";
 import { requireAdmin } from "@/lib/server/require-admin";
 import {
+  passesChapterQualityChecks,
   passesStoryQualityChecks,
   STORY_PROMPT_TEMPLATE_VERSION,
 } from "@/lib/server/prompt-templates";
@@ -28,6 +30,11 @@ type ChatBody = {
   userMessage?: unknown;
   mode?: unknown;
 };
+
+function formatQualityError(reasons: string[]): string {
+  const detail = reasons.length ? `: ${reasons.join(", ")}` : "";
+  return `Generated output failed quality checks${detail}`;
+}
 
 export async function POST(req: Request) {
   const adminGate = await requireAdmin();
@@ -81,6 +88,11 @@ export async function POST(req: Request) {
   }
 
   const controls = parseControlsJson(agent.controlsJson);
+  const minChapterLength =
+    mode === "generate"
+      ? minChapterLengthForTarget(controls.targetCharacterCount)
+      : 0;
+
   const history = await db
     .select({
       role: studioMessages.role,
@@ -111,45 +123,42 @@ export async function POST(req: Request) {
     { role: "user", content: promptForModel },
   ];
 
-  const systemPrompt = buildAgentSystemPrompt(agentId, threadId);
+  const baseSystemPrompt = buildAgentSystemPrompt(agentId, threadId);
+  const maxAttempts = mode === "generate" ? 3 : 2;
 
   let lastError: unknown;
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  let lastQualityReasons: string[] = [];
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
+      const retryHint =
+        attempt > 1 && lastQualityReasons.length
+          ? ` Previous draft failed checks (${lastQualityReasons.join(", ")}). Rewrite a longer draft with at least ${minChapterLength} characters and [Speaker] tags throughout.`
+          : "";
+
+      const systemPrompt =
+        mode === "generate"
+          ? `${baseSystemPrompt}${retryHint} Minimum chapter length: ${minChapterLength} characters.`
+          : baseSystemPrompt;
+
       const result = await generateChatWithProvider({
         systemPrompt,
         messages: llmMessages,
+        maxTokens: mode === "generate" ? 16_384 : undefined,
       });
 
-      let text = result.text;
-      let quality = passesStoryQualityChecks(text);
-
-      if (!quality.ok && attempt < 2) {
-        const retry = await generateChatWithProvider({
-          systemPrompt: `${systemPrompt}\nRevise for uniqueness and quality. Reasons: ${quality.reasons.join(", ")}.`,
-          messages: [
-            ...llmMessages,
-            {
-              role: "assistant",
-              content: text,
-            },
-            {
-              role: "user",
-              content:
-                "Revise the draft to fix quality issues and ensure it is distinct from other books.",
-            },
-          ],
-        });
-        text = retry.text;
-        quality = passesStoryQualityChecks(text);
-        result.promptTokens += retry.promptTokens;
-        result.completionTokens += retry.completionTokens;
-      }
+      const text = result.text;
+      const quality =
+        mode === "generate"
+          ? passesChapterQualityChecks(text, minChapterLength)
+          : passesStoryQualityChecks(text);
 
       if (!quality.ok) {
+        lastQualityReasons = quality.reasons;
+        if (attempt < maxAttempts) continue;
         return NextResponse.json(
           {
-            error: "Generated output failed quality checks",
+            error: formatQualityError(quality.reasons),
             qualityReasons: quality.reasons,
             promptTemplateVersion: STORY_PROMPT_TEMPLATE_VERSION,
           },
@@ -206,7 +215,7 @@ export async function POST(req: Request) {
       });
     } catch (error) {
       lastError = error;
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 300));
+      if (attempt < maxAttempts) await new Promise((r) => setTimeout(r, 300));
     }
   }
 

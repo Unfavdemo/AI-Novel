@@ -5,10 +5,10 @@ import {
   canReadChapterBody,
   getChapterAccessState,
 } from "@/lib/chapter-access";
+import { displayChapterPriceCents } from "@/lib/chapter-pricing";
+import { buildChapterTeaser } from "@/lib/chapter-teaser";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-
-const TEASER_LEN = 400;
 
 type RouteCtx = { params: Promise<{ id: string }> };
 
@@ -59,10 +59,8 @@ export async function GET(_req: Request, ctx: RouteCtx) {
     );
 
     if (!canReadChapterBody(state)) {
-      const teaser =
-        chapter.body.length <= TEASER_LEN
-          ? chapter.body
-          : `${chapter.body.slice(0, TEASER_LEN).trimEnd()}…`;
+      const teaser = buildChapterTeaser(chapter.body);
+      const effectivePriceCents = displayChapterPriceCents(chapter);
       return NextResponse.json(
         {
           error: "Locked",
@@ -74,6 +72,7 @@ export async function GET(_req: Request, ctx: RouteCtx) {
             title: chapter.title,
             isFreePreview: chapter.isFreePreview,
             priceCents: chapter.priceCents,
+            effectivePriceCents,
           },
           teaser,
         },

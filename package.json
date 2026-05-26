@@ -13,7 +13,11 @@
     "db:migrate": "node --env-file=.env node_modules/drizzle-kit/bin.cjs migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "node --import tsx --env-file=.env ./scripts/seed-sample-books.ts"
+    "db:seed": "node --import tsx --env-file=.env ./scripts/seed-sample-books.ts",
+    "db:clear-stories": "node --import tsx --env-file=.env ./scripts/clear-stories.ts",
+    "db:clear-chats": "node --import tsx --env-file=.env ./scripts/clear-studio-chats.ts",
+    "db:apply-chapter-pricing": "node --import tsx --env-file=.env ./scripts/apply-serial-chapter-pricing.ts",
+    "voices:sync": "node --import tsx --env-file=.env ./scripts/sync-elevenlabs-voices.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",

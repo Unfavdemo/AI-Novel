@@ -24,6 +24,7 @@ export function SignInEmailForm({ callbackUrl }: { callbackUrl: string }) {
       <label className="flex flex-col gap-1">
         <span className="text-xs font-medium text-text-muted">Email</span>
         <input
+          id="signin-email"
           name="email"
           type="email"
           required
@@ -34,6 +35,7 @@ export function SignInEmailForm({ callbackUrl }: { callbackUrl: string }) {
       <label className="flex flex-col gap-1">
         <span className="text-xs font-medium text-text-muted">Password</span>
         <input
+          id="signin-password"
           name="password"
           type="password"
           required

@@ -1,8 +1,14 @@
 import { db } from "@/db";
-import { chapters, stories, studioAgents } from "@/db/schema";
+import { chapters, stories, studioAgents, studioThreads } from "@/db/schema";
 import { requireAdmin } from "@/lib/server/require-admin";
 import { parseMetadataJson } from "@/lib/server/story-metadata";
 import { parseListingFromSaveBody } from "@/lib/server/story-listing-fields";
+import {
+  buildDefaultCastForSpeakers,
+  serializeVoiceCastJson,
+} from "@/lib/speaker-voice";
+import { defaultChapterPricingForSortIndex } from "@/lib/chapter-pricing";
+import { parseVoiceTags } from "@/lib/voiceTags";
 import { and, eq, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -55,9 +61,18 @@ export async function POST(req: Request, context: RouteContext) {
         ? controls.mood
         : null;
 
+  const voiceSegments = parseVoiceTags(text);
+  const voiceCastSeed = agent.storyId ?? agentId;
+
   const storyFields = {
     title: listing.title,
     body: text,
+    voiceCastJson: serializeVoiceCastJson(
+      buildDefaultCastForSpeakers(
+        voiceSegments.map((s) => s.speakerId),
+        { storySeed: voiceCastSeed },
+      ),
+    ),
     visibility,
     description: listing.description,
     keywords: listing.keywords,
@@ -108,6 +123,11 @@ export async function POST(req: Request, context: RouteContext) {
       .set({ title: "Chapter 1", body: text, updatedAt: new Date() })
       .where(and(eq(chapters.storyId, agent.storyId), eq(chapters.sortIndex, 0)));
 
+    await db
+      .update(studioThreads)
+      .set({ title: listing.title, updatedAt: new Date() })
+      .where(eq(studioThreads.id, agent.threadId));
+
     return NextResponse.json({ storyId: agent.storyId, updated: true });
   }
 
@@ -121,12 +141,25 @@ export async function POST(req: Request, context: RouteContext) {
       .returning({ id: stories.id });
 
     if (storyRow?.id) {
+      const castForStory = serializeVoiceCastJson(
+        buildDefaultCastForSpeakers(
+          voiceSegments.map((s) => s.speakerId),
+          { storySeed: storyRow.id },
+        ),
+      );
+      await tx
+        .update(stories)
+        .set({ voiceCastJson: castForStory })
+        .where(eq(stories.id, storyRow.id));
+
+      const pricing = defaultChapterPricingForSortIndex(0);
       await tx.insert(chapters).values({
         storyId: storyRow.id,
         sortIndex: 0,
         title: "Chapter 1",
         body: text,
-        isFreePreview: visibility === "public",
+        isFreePreview: pricing.isFreePreview,
+        priceCents: pricing.priceCents,
         updatedAt: new Date(),
       });
 
@@ -139,6 +172,11 @@ export async function POST(req: Request, context: RouteContext) {
           updatedAt: new Date(),
         })
         .where(eq(studioAgents.id, agentId));
+
+      await tx
+        .update(studioThreads)
+        .set({ title: listing.title, updatedAt: new Date() })
+        .where(eq(studioThreads.id, agent.threadId));
     }
 
     return storyRow?.id;

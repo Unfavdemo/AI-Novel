@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { Providers } from "@/components/providers";
 import { SiteHeader } from "@/components/site-header";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
+import { safeAuth } from "@/lib/server/safe-auth";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,11 +25,13 @@ export const metadata: Metadata = {
   description: APP_TAGLINE,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await safeAuth();
+
   return (
     <html
       lang="en"
@@ -36,7 +39,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-surface font-sans text-text-primary">
-        <Providers>
+        <Providers session={session}>
           <SiteHeader />
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>
           <SiteFooter />

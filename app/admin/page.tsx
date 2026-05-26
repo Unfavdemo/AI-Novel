@@ -11,7 +11,7 @@ export default async function AdminEntryPage() {
   const session = await safeAuth();
   const isAdmin = isAdminSession(session);
   if (!isAdmin) {
-    redirect("/admin/login?callbackUrl=/studio");
+    redirect("/auth/signin?callbackUrl=/studio");
   }
 
   redirect("/studio");

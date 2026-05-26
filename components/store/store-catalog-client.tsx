@@ -5,7 +5,8 @@ import { PageShell } from "@/components/page-shell";
 import { StoryCover } from "@/components/story/story-cover";
 import { readResponseJson } from "@/lib/read-response-json";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { ADMIN_WORKSPACE_NAME } from "@/lib/brand";
+import { useAppSession } from "@/lib/hooks/use-app-session";
 import { useCallback, useEffect, useState } from "react";
 
 export type CatalogSeriesItem = {
@@ -21,7 +22,7 @@ export type CatalogSeriesItem = {
 };
 
 export function StoreCatalogClient() {
-  const { status, data: sessionData } = useSession();
+  const { session: sessionData, isSignedIn } = useAppSession();
   const showStudioCta = sessionData?.user?.isAdmin === true;
   const [items, setItems] = useState<CatalogSeriesItem[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +69,7 @@ export function StoreCatalogClient() {
               Ongoing audiobook serials with chapter-by-chapter access.
             </p>
           </div>
-          {status === "authenticated" && !showStudioCta ? (
+          {isSignedIn && !showStudioCta ? (
             <Link
               href="/library"
               className="text-xs font-medium text-accent hover:underline"
@@ -90,7 +91,7 @@ export function StoreCatalogClient() {
                 href="/studio"
                 className="mt-3 inline-block text-sm font-semibold text-accent hover:underline"
               >
-                Publish from Creator Studio
+                Open {ADMIN_WORKSPACE_NAME}
               </Link>
             ) : null}
           </div>

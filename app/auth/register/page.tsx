@@ -17,7 +17,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
   return (
     <AuthCard
       title="Create your account"
-      description="Join as a reader to unlock chapters, react to stories, and comment. Creator access is assigned separately."
+      description="Join as a reader to unlock chapters, save books to your shelf, and join story discussions."
       footer={
         <Link
           href="/auth/signin"

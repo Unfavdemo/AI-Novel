@@ -19,6 +19,22 @@ export async function refreshStoryListing(storyId: string): Promise<void> {
   if (!res.ok) throw new Error(await parseError(res));
 }
 
+export async function generateNextChapter(
+  storyId: string,
+  direction?: string,
+): Promise<{ chapter: { id: string; title: string; sortIndex: number } }> {
+  const res = await fetch(`/api/stories/${storyId}/chapters/generate`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify(direction?.trim() ? { direction: direction.trim() } : {}),
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+  return (await res.json()) as {
+    chapter: { id: string; title: string; sortIndex: number };
+  };
+}
+
 export async function deleteStory(storyId: string): Promise<void> {
   const res = await fetch(`/api/stories/${storyId}`, {
     method: "DELETE",

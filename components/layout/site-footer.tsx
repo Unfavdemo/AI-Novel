@@ -1,3 +1,4 @@
+import { SiteAuthControls } from "@/components/auth/site-auth-controls";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import Link from "next/link";
 
@@ -18,9 +19,7 @@ export function SiteFooter() {
           <Link href="/library" className="transition hover:text-accent">
             Library
           </Link>
-          <Link href="/auth/signin" className="transition hover:text-accent">
-            Sign in
-          </Link>
+          <SiteAuthControls variant="footer" />
         </nav>
         <p className="text-[11px] text-text-faint">© {year} {APP_NAME}</p>
       </div>

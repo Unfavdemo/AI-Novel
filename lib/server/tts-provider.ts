@@ -35,6 +35,50 @@ function timeoutSignal(ms: number): AbortSignal {
   return controller.signal;
 }
 
+function extractElevenLabsMessage(body: string): string | null {
+  try {
+    const parsed = JSON.parse(body) as {
+      detail?: { message?: string; status?: string };
+      message?: string;
+    };
+    return parsed.detail?.message ?? parsed.message ?? null;
+  } catch {
+    return body.trim() || null;
+  }
+}
+
+export function formatElevenLabsError(status: number, body: string): string {
+  const detail = extractElevenLabsMessage(body);
+  if (detail) return detail;
+  if (status === 401) {
+    return "Invalid ElevenLabs API key. Check ELEVENLABS_API_KEY in your environment.";
+  }
+  if (status === 402) {
+    return "ElevenLabs rejected this request (quota or voice not on your plan). Use premade voice IDs from your account.";
+  }
+  if (status === 429) {
+    return "ElevenLabs rate limit hit. Wait a moment and try again.";
+  }
+  return `TTS provider error (${status}): ${body.slice(0, 200)}`;
+}
+
+export function httpStatusForElevenLabsError(
+  status: number,
+  message: string,
+): number {
+  if (status === 401) return 401;
+  if (status === 429) return 429;
+  const lower = message.toLowerCase();
+  if (
+    status === 402 ||
+    lower.includes("quota") ||
+    lower.includes("credits remaining")
+  ) {
+    return 402;
+  }
+  return 502;
+}
+
 export async function synthesizeWithProvider(
   input: SynthesisInput,
 ): Promise<{ audio: ArrayBuffer; provider: string; model: string }> {
@@ -73,8 +117,8 @@ export async function synthesizeWithProvider(
     },
   ).then(async (res) => {
     if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`TTS provider error (${res.status}): ${body.slice(0, 200)}`);
+      const errText = await res.text();
+      throw new Error(formatElevenLabsError(res.status, errText));
     }
     return await res.arrayBuffer();
   });

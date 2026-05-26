@@ -1,8 +1,8 @@
-import { signOutAction } from "@/app/actions/auth";
-import { safeAuth } from "@/lib/server/safe-auth";
+import { SiteAuthControls } from "@/components/auth/site-auth-controls";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { APP_NAME, CREATOR_PRODUCT_NAME } from "@/lib/brand";
+import { ADMIN_WORKSPACE_NAME, APP_NAME } from "@/lib/brand";
 import { isAdminSession } from "@/lib/server/is-admin";
+import { safeAuth } from "@/lib/server/safe-auth";
 import Link from "next/link";
 
 const navLinkClass =
@@ -36,35 +36,14 @@ export async function SiteHeader() {
             </Link>
             {showStudio ? (
               <Link href="/studio" className={navLinkClass}>
-                {CREATOR_PRODUCT_NAME}
+                {ADMIN_WORKSPACE_NAME}
               </Link>
             ) : null}
           </nav>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <ThemeToggle />
-          {session?.user ? (
-            <>
-              <span className="hidden max-w-[12rem] truncate text-xs text-text-muted sm:inline">
-                {session.user.name ?? session.user.email}
-              </span>
-              <form action={signOutAction}>
-                <button
-                  type="submit"
-                  className="rounded-md border border-border-subtle bg-elevated px-2.5 py-1 text-xs font-medium text-text-primary transition hover:border-gold-500/35"
-                >
-                  Sign out
-                </button>
-              </form>
-            </>
-          ) : (
-            <Link
-              href="/auth/signin"
-              className="rounded-md border border-gold-500/35 bg-gold-500/10 px-2.5 py-1 text-xs font-semibold text-accent transition hover:bg-gold-500/15"
-            >
-              Sign in
-            </Link>
-          )}
+          <SiteAuthControls variant="header" />
         </div>
       </div>
     </header>

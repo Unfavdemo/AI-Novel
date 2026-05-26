@@ -160,6 +160,8 @@ export function AgentSaveModal({
         <label className="mt-4 flex flex-col gap-1">
           <span className="text-xs font-medium text-text-muted">Title</span>
           <input
+            id="agent-save-title"
+            name="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="input-surface rounded-md px-3 py-2 text-sm"
@@ -169,6 +171,8 @@ export function AgentSaveModal({
         <label className="mt-3 flex flex-col gap-1">
           <span className="text-xs font-medium text-text-muted">Description</span>
           <textarea
+            id="agent-save-description"
+            name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
@@ -179,6 +183,8 @@ export function AgentSaveModal({
         <label className="mt-3 flex flex-col gap-1">
           <span className="text-xs font-medium text-text-muted">Keywords</span>
           <input
+            id="agent-save-keywords"
+            name="keywords"
             value={keywordsText}
             onChange={(e) => setKeywordsText(e.target.value)}
             placeholder="comma-separated tags"
@@ -209,6 +215,8 @@ export function AgentSaveModal({
         <label className="mt-3 flex flex-col gap-1">
           <span className="text-xs font-medium text-text-muted">Visibility</span>
           <select
+            id="agent-save-visibility"
+            name="visibility"
             value={visibility}
             onChange={(e) =>
               setVisibility(e.target.value as "private" | "public")

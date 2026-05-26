@@ -1,7 +1,17 @@
 import { db } from "@/db";
 import { chapters, stories } from "@/db/schema";
-import { parseControlsJson } from "@/lib/server/studio-defaults";
+import {
+  DEFAULT_CHAPTER_TARGET_CHARACTERS,
+  parseControlsJson,
+} from "@/lib/server/studio-defaults";
 import { generateNextChapterWithProvider } from "@/lib/server/chapter-generation";
+import {
+  mergeVoiceCast,
+  parseVoiceCastJson,
+  serializeVoiceCastJson,
+} from "@/lib/speaker-voice";
+import { defaultChapterPricingForSortIndex } from "@/lib/chapter-pricing";
+import { parseVoiceTags } from "@/lib/voiceTags";
 import { isAdminSession } from "@/lib/server/is-admin";
 import { safeAuth } from "@/lib/server/safe-auth";
 import { asc, eq, max } from "drizzle-orm";
@@ -56,7 +66,8 @@ export async function POST(req: Request, ctx: RouteCtx) {
       complexity: story.complexity ?? "High",
       literarySophistication: story.literarySophistication ?? 58,
       narrativeTension: story.narrativeTension ?? 62,
-      targetCharacterCount: story.targetCharacterCount ?? 8000,
+      targetCharacterCount:
+        story.targetCharacterCount ?? DEFAULT_CHAPTER_TARGET_CHARACTERS,
     }),
   );
 
@@ -74,6 +85,7 @@ export async function POST(req: Request, ctx: RouteCtx) {
       .from(chapters)
       .where(eq(chapters.storyId, storyId));
     const sortIndex = (agg?.m ?? -1) + 1;
+    const pricing = defaultChapterPricingForSortIndex(sortIndex);
 
     const [created] = await db
       .insert(chapters)
@@ -82,21 +94,42 @@ export async function POST(req: Request, ctx: RouteCtx) {
         sortIndex,
         title: draft.title,
         body: draft.body,
-        isFreePreview: story.visibility === "public",
+        isFreePreview: pricing.isFreePreview,
+        priceCents: pricing.priceCents,
         updatedAt: new Date(),
       })
       .returning();
 
+    const newSpeakers = parseVoiceTags(draft.body).map((s) => s.speakerId);
+    const allBodies = [...chapterRows.map((c) => c.body), draft.body];
+    const allSpeakers = allBodies.flatMap((body) =>
+      parseVoiceTags(body).map((s) => s.speakerId),
+    );
+    const voiceCast = mergeVoiceCast(
+      allSpeakers,
+      parseVoiceCastJson(story.voiceCastJson),
+      { storySeed: storyId },
+    );
+    if (newSpeakers.length > 0 || !story.voiceCastJson) {
+      await db
+        .update(stories)
+        .set({
+          voiceCastJson: serializeVoiceCastJson(voiceCast),
+          updatedAt: new Date(),
+        })
+        .where(eq(stories.id, storyId));
+    }
+
     return NextResponse.json({ chapter: created }, { status: 201 });
   } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Chapter generation failed. Check OPENAI_API_KEY.";
+    const isQuality = message.includes("quality checks");
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Chapter generation failed. Check OPENAI_API_KEY.",
-      },
-      { status: 502 },
+      { error: message },
+      { status: isQuality ? 422 : 502 },
     );
   }
 }

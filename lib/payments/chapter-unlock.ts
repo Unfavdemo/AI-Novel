@@ -37,6 +37,7 @@ export function verifyChapterUnlockPayment(
   }
 
   if (provider === "stripe") {
+    const stripeConfigured = Boolean(process.env.STRIPE_SECRET_KEY?.trim());
     const paymentStatus = req.headers.get("x-payment-status");
     const paymentReference = req.headers.get("x-payment-reference");
     if (paymentStatus === "paid") {
@@ -49,7 +50,9 @@ export function verifyChapterUnlockPayment(
     return {
       ok: false,
       code: "PAYMENT_NOT_VERIFIED",
-      message: "Payment is not verified",
+      message: stripeConfigured
+        ? "Complete checkout to unlock this chapter."
+        : "Paid unlocks are not available yet. Stripe checkout is coming soon.",
       status: 402,
     };
   }

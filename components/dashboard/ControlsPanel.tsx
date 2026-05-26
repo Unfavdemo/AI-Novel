@@ -38,6 +38,8 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 }
 
 function Slider({
+  id,
+  name,
   label,
   value,
   min,
@@ -45,6 +47,8 @@ function Slider({
   onChange,
   hint,
 }: {
+  id: string;
+  name: string;
   label: string;
   value: number;
   min: number;
@@ -59,6 +63,8 @@ function Slider({
         <span className="text-xs tabular-nums text-gold-400">{value}</span>
       </div>
       <input
+        id={id}
+        name={name}
         type="range"
         min={min}
         max={max}
@@ -93,6 +99,8 @@ export function ControlsPanel({
         <div>
           <FieldLabel>Genre</FieldLabel>
           <select
+            id="manuscript-genre"
+            name="genre"
             className="w-full rounded-lg border border-border-subtle input-surface px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/40 focus:ring-2"
             value={controls.genre}
             onChange={(e) => onChange({ genre: e.target.value })}
@@ -108,6 +116,8 @@ export function ControlsPanel({
         <div>
           <FieldLabel>Complexity</FieldLabel>
           <select
+            id="manuscript-complexity"
+            name="complexity"
             className="w-full rounded-lg border border-border-subtle input-surface px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/40 focus:ring-2"
             value={controls.complexity}
             onChange={(e) => onChange({ complexity: e.target.value })}
@@ -123,6 +133,8 @@ export function ControlsPanel({
         <div>
           <FieldLabel>Target character count</FieldLabel>
           <input
+            id="manuscript-target-chars"
+            name="targetCharacterCount"
             type="number"
             min={500}
             max={120000}
@@ -138,6 +150,8 @@ export function ControlsPanel({
         <div>
           <FieldLabel>Mood</FieldLabel>
           <select
+            id="manuscript-mood"
+            name="mood"
             className="w-full rounded-lg border border-border-subtle input-surface px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/40 focus:ring-2"
             value={controls.mood}
             onChange={(e) => onChange({ mood: e.target.value })}
@@ -151,6 +165,8 @@ export function ControlsPanel({
         </div>
 
         <Slider
+          id="manuscript-literary-sophistication"
+          name="literarySophistication"
           label="Literary sophistication"
           value={controls.literarySophistication}
           min={0}
@@ -160,6 +176,8 @@ export function ControlsPanel({
         />
 
         <Slider
+          id="manuscript-narrative-tension"
+          name="narrativeTension"
           label="Narrative tension"
           value={controls.narrativeTension}
           min={0}

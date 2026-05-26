@@ -2,8 +2,20 @@
 
 import { previewVoice } from "@/lib/api/tts";
 import type { VoiceSegment } from "@/lib/voiceTags";
-import { VOICE_OPTION_IDS, VOICE_REGISTRY, getVoiceCardLabel } from "@/lib/voices";
+import {
+  FEMALE_VOICE_PRESETS,
+  MALE_VOICE_PRESETS,
+  NEUTRAL_VOICE_PRESETS,
+  VOICE_REGISTRY,
+  getVoiceCardLabel,
+} from "@/lib/voices";
 import { useMemo } from "react";
+
+const VOICE_GROUPS: { label: string; ids: string[] }[] = [
+  { label: "Female voices", ids: FEMALE_VOICE_PRESETS },
+  { label: "Male voices", ids: MALE_VOICE_PRESETS },
+  { label: "Neutral voices", ids: NEUTRAL_VOICE_PRESETS },
+];
 
 type VoiceConsoleProps = {
   open: boolean;
@@ -56,8 +68,8 @@ export function VoiceConsole({
           </button>
         </div>
         <p className="border-b border-border-subtle px-4 py-2 text-xs text-text-muted">
-          Assign regional accent presets per speaker. Preview uses ElevenLabs
-          multilingual narration (configure voice IDs in .env).
+          Assign a voice preset per speaker. Female and male characters map to
+          different ElevenLabs voices; each book can use a distinct palette.
         </p>
         <div className="flex-1 overflow-y-auto px-4 py-3">
           {speakers.length === 0 ? (
@@ -96,15 +108,21 @@ export function VoiceConsole({
                       Cast voice (accent preset)
                     </label>
                     <select
+                      id={`voice-cast-${sid}`}
+                      name={`voiceCast.${sid}`}
                       className="mt-1 w-full rounded-md border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary"
                       value={castPreset in VOICE_REGISTRY ? castPreset : "narrator"}
                       onChange={(e) => onCastChange(sid, e.target.value)}
                     >
-                      {VOICE_OPTION_IDS.map((vid) => (
-                        <option key={vid} value={vid}>
-                          {VOICE_REGISTRY[vid]?.label ?? vid} (
-                          {VOICE_REGISTRY[vid]?.accent})
-                        </option>
+                      {VOICE_GROUPS.map((group) => (
+                        <optgroup key={group.label} label={group.label}>
+                          {group.ids.map((vid) => (
+                            <option key={vid} value={vid}>
+                              {VOICE_REGISTRY[vid]?.label ?? vid} ·{" "}
+                              {VOICE_REGISTRY[vid]?.accent}
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
                   </li>

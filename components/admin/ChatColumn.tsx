@@ -100,8 +100,8 @@ export function ChatColumn({
           <p className="text-xs text-text-muted">Loading conversation…</p>
         ) : messages.length === 0 ? (
           <p className="text-xs text-text-muted">
-            Start a chat to generate an isolated agent draft. Each new chat creates a unique book
-            context.
+            Each chat is one book. Save to the library, then generate more chapters that append to
+            the same title — the chat name updates to match the book.
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
@@ -129,6 +129,8 @@ export function ChatColumn({
 
       <div className="border-t border-border-subtle p-3">
         <textarea
+          id="studio-chat-input"
+          name="message"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           rows={3}

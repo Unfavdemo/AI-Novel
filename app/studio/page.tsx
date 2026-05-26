@@ -14,7 +14,7 @@ export default async function StudioPage() {
     redirect("/auth/signin?callbackUrl=/studio");
   }
   if (!isAdminSession(session)) {
-    redirect("/admin/login?callbackUrl=/studio");
+    redirect("/auth/signin?callbackUrl=/studio");
   }
 
   return <Dashboard />;

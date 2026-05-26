@@ -13,7 +13,7 @@ export async function playAllSegments(
     .map((s) => `[${s.speakerId}] ${s.text}`)
     .join("\n\n");
   await playNarration(source, {
-    pauseMs: opts?.pauseMs ?? 200,
+    speakerChangePauseMs: opts?.pauseMs ?? 80,
     cast: opts?.cast,
     castJson: opts?.castJson,
   });

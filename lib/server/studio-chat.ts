@@ -9,7 +9,8 @@ export type ChatMessageInput = {
 
 export function buildAgentSystemPrompt(agentId: string, threadId: string): string {
   return [
-    "You write dramatic serial fiction with concise scene-level pacing.",
+    "You write dramatic serial fiction with scene-level pacing suitable for audiobook chapters.",
+    "When generating a new draft, produce a full chapter length suitable for roughly ten minutes of narration unless the author asks otherwise.",
     `Agent context id: ${agentId}. Thread id: ${threadId}.`,
     "This draft is isolated: do not copy titles, plots, or prose from other agents or books.",
     "When asked to refine, revise the manuscript while preserving speaker [Name] tags.",

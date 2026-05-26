@@ -2,6 +2,7 @@ import { safeAuth } from "@/lib/server/safe-auth";
 import { resolveElevenLabsVoiceId } from "@/lib/server/resolve-voice-id";
 import { synthesizeWithProvider } from "@/lib/server/tts-provider";
 import { recordUsageEvent } from "@/lib/server/usage-accounting";
+import { classifyTtsErrorMessage } from "@/lib/tts-errors";
 import { NextResponse } from "next/server";
 
 type PreviewBody = {
@@ -49,9 +50,17 @@ export async function POST(req: Request) {
       mimeType: "audio/mpeg",
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Preview failed" },
-      { status: 502 },
-    );
+    const message =
+      error instanceof Error ? error.message : "Preview failed";
+    const code = classifyTtsErrorMessage(message);
+    const status =
+      code === "quota"
+        ? 402
+        : code === "auth"
+          ? 401
+          : code === "rate_limit"
+            ? 429
+            : 502;
+    return NextResponse.json({ error: message, code }, { status });
   }
 }

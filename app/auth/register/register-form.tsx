@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { registerAction } from "./actions";
 
 function SubmitButton() {
@@ -18,7 +19,7 @@ function SubmitButton() {
 }
 
 export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
-  const [state, formAction] = useFormState(registerAction, undefined);
+  const [state, formAction] = useActionState(registerAction, undefined);
 
   return (
     <form action={formAction} className="mt-6 flex flex-col gap-3">
@@ -27,6 +28,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
       <label className="flex flex-col gap-1">
         <span className="text-xs font-medium text-text-muted">Display name (optional)</span>
         <input
+          id="register-name"
           name="name"
           type="text"
           autoComplete="name"
@@ -37,6 +39,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
       <label className="flex flex-col gap-1">
         <span className="text-xs font-medium text-text-muted">Email</span>
         <input
+          id="register-email"
           name="email"
           type="email"
           required
@@ -48,6 +51,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
       <label className="flex flex-col gap-1">
         <span className="text-xs font-medium text-text-muted">Password (10+ characters)</span>
         <input
+          id="register-password"
           name="password"
           type="password"
           required
@@ -60,6 +64,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
       <label className="flex flex-col gap-1">
         <span className="text-xs font-medium text-text-muted">Confirm password</span>
         <input
+          id="register-confirm"
           name="confirm"
           type="password"
           required

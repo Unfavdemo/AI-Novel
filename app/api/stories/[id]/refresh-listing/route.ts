@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { stories } from "@/db/schema";
+import { DEFAULT_CHAPTER_TARGET_CHARACTERS } from "@/lib/chapter-length";
 import { parseControlsJson } from "@/lib/server/studio-defaults";
 import {
   buildDefaultCastForSpeakers,
@@ -48,7 +49,8 @@ export async function POST(_req: Request, ctx: RouteCtx) {
       complexity: story.complexity ?? "High",
       literarySophistication: story.literarySophistication ?? 58,
       narrativeTension: story.narrativeTension ?? 62,
-      targetCharacterCount: story.targetCharacterCount ?? 8000,
+      targetCharacterCount:
+        story.targetCharacterCount ?? DEFAULT_CHAPTER_TARGET_CHARACTERS,
     }),
   );
 
@@ -62,6 +64,7 @@ export async function POST(_req: Request, ctx: RouteCtx) {
     const segments = parseVoiceTags(story.body);
     const voiceCast = buildDefaultCastForSpeakers(
       segments.map((s) => s.speakerId),
+      { storySeed: id },
     );
 
     await db

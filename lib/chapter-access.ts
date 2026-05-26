@@ -33,7 +33,11 @@ export function isPaidChapter(
   chapter: Pick<ChapterRow, "priceCents" | "isFreePreview">,
 ): boolean {
   if (chapter.isFreePreview) return false;
-  return typeof chapter.priceCents === "number" && chapter.priceCents > 0;
+  if (typeof chapter.priceCents === "number") {
+    return chapter.priceCents > 0;
+  }
+  /** Non-preview serial chapter without a stored price is still behind the paywall. */
+  return true;
 }
 
 export function catalogAuthorFilterUserId(): string | undefined {

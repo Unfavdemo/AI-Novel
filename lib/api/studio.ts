@@ -37,13 +37,19 @@ export type StudioAgentDetail = {
 };
 
 async function parseJson<T>(res: Response): Promise<T> {
-  const data = (await res.json()) as T & { error?: string };
+  const data = (await res.json()) as T & {
+    error?: string;
+    qualityReasons?: string[];
+  };
   if (!res.ok) {
-    throw new Error(
-      typeof (data as { error?: string }).error === "string"
-        ? (data as { error: string }).error
-        : `Request failed (${res.status})`,
-    );
+    const err = (data as { error?: string }).error;
+    const reasons = (data as { qualityReasons?: string[] }).qualityReasons;
+    if (typeof err === "string") {
+      throw new Error(
+        reasons?.length ? `${err} (${reasons.join(", ")})` : err,
+      );
+    }
+    throw new Error(`Request failed (${res.status})`);
   }
   return data;
 }

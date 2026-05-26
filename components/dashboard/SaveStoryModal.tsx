@@ -90,6 +90,8 @@ export function SaveStoryModal({
           Title
         </label>
         <input
+          id="save-story-title"
+          name="title"
           className="mt-1 w-full rounded-lg border border-border-subtle bg-obsidian-950/80 px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/30 focus:ring-2"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -99,6 +101,8 @@ export function SaveStoryModal({
           Visibility
         </label>
         <select
+          id="save-story-visibility"
+          name="visibility"
           className="mt-1 w-full rounded-lg border border-border-subtle bg-obsidian-950/80 px-3 py-2 text-sm text-text-primary outline-none ring-gold-500/30 focus:ring-2"
           value={visibility}
           onChange={(e) =>

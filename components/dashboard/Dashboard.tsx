@@ -7,10 +7,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { VoiceConsole } from "@/components/voice/VoiceConsole";
 import type { StoryListingMetadata } from "@/lib/api/story-listing";
 import { useVoiceSegments } from "@/hooks/useVoiceSegments";
-import { CREATOR_PRODUCT_NAME } from "@/lib/brand";
+import { ADMIN_WORKSPACE_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export function Dashboard() {
   const router = useRouter();
@@ -24,6 +24,7 @@ export function Dashboard() {
     null,
   );
   const segments = useVoiceSegments(timelineText);
+  const afterStorySavedRef = useRef<(() => Promise<void>) | null>(null);
 
   return (
     <div className="studio-page-bg flex min-h-screen flex-col">
@@ -34,14 +35,11 @@ export function Dashboard() {
               Production
             </p>
             <h1 className="text-lg font-semibold tracking-tight text-text-primary md:text-xl">
-              {CREATOR_PRODUCT_NAME}
+              {ADMIN_WORKSPACE_NAME}
             </h1>
             <p className="mt-0.5 text-xs text-text-muted md:text-sm">
-              Draft with AI chat, review each book in its own agent, and publish to your
-              catalog.{" "}
-              <Link href="/library" className="text-accent hover:underline">
-                Library
-              </Link>
+              Draft with AI chat, review each book in its own agent, and publish to the
+              catalog.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -60,6 +58,9 @@ export function Dashboard() {
       <main className="mx-auto flex w-full max-w-[90rem] flex-1 flex-col gap-4 px-3 py-4 sm:px-4 md:px-5">
         <AdminWorkspace
           onDraftChange={setTimelineText}
+          registerAfterStorySaved={(fn) => {
+            afterStorySavedRef.current = fn;
+          }}
           onRequestSave={({ agentId, draftBody, metadata }) => {
             setAgentIdForSave(agentId);
             setDraftForSave(draftBody);
@@ -88,7 +89,10 @@ export function Dashboard() {
         agentId={agentIdForSave}
         draftBody={draftForSave}
         initialMetadata={metadataForSave}
-        onSaved={(id) => router.push(`/library/${id}`)}
+        onSaved={async (id) => {
+          await afterStorySavedRef.current?.();
+          router.push(`/library/${id}`);
+        }}
       />
     </div>
   );

@@ -1,6 +1,9 @@
 "use client";
 
+import { SignInLink } from "@/components/auth/sign-in-link";
+import { StoreListenButton } from "@/components/book/StoreListenButton";
 import { PageShell } from "@/components/page-shell";
+import { useAppSession } from "@/lib/hooks/use-app-session";
 import { readResponseJson } from "@/lib/read-response-json";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -13,6 +16,7 @@ type ChapterPayload = {
   body?: string;
   isFreePreview: boolean;
   priceCents: number | null;
+  effectivePriceCents?: number | null;
 };
 
 export function StoreChapterClient({
@@ -32,13 +36,17 @@ export function StoreChapterClient({
     prevId: null,
     nextId: null,
   });
+  const [voiceCastJson, setVoiceCastJson] = useState<string | null>(null);
+  const { isSignedIn, isLoading: sessionLoading } = useAppSession();
 
   const loadSeriesNav = useCallback(async () => {
     const res = await fetch(`/api/catalog/series/${seriesId}`);
     const parsed = await readResponseJson<{
+      series?: { voiceCastJson?: string | null };
       chapters?: { id: string; sortIndex: number }[];
     }>(res);
     if (!parsed.ok || !res.ok) return;
+    setVoiceCastJson(parsed.body.series?.voiceCastJson ?? null);
     const list = parsed.body.chapters ?? [];
     const idx = list.findIndex((c) => c.id === chapterId);
     if (idx === -1) return;
@@ -100,11 +108,16 @@ export function StoreChapterClient({
   }, [chapterId, seriesId]);
 
   useEffect(() => {
+    let cancelled = false;
     void (async () => {
       setLoading(true);
       await loadSeriesNav();
+      if (cancelled) return;
       await loadChapter();
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [loadChapter, loadSeriesNav]);
 
   const unlock = async () => {
@@ -112,16 +125,30 @@ export function StoreChapterClient({
     const res = await fetch(`/api/catalog/chapters/${chapterId}/unlock`, {
       method: "POST",
     });
+    const unlockData = (await res.json().catch(() => ({}))) as {
+      error?: string;
+      code?: string;
+    };
     if (!res.ok) {
       if (res.status === 401) {
         setUnlockError("Session expired. Sign in again, then retry unlock.");
         return;
       }
-      if (res.status === 403) {
-        setUnlockError("Unlocks are currently unavailable in this environment.");
+      if (res.status === 402) {
+        setUnlockError(
+          unlockData.error ??
+            "Payment required. Stripe checkout will unlock this chapter.",
+        );
         return;
       }
-      setUnlockError("Unlock request failed. Please retry.");
+      if (res.status === 403) {
+        setUnlockError(
+          unlockData.error ??
+            "Unlocks are currently unavailable in this environment.",
+        );
+        return;
+      }
+      setUnlockError(unlockData.error ?? "Unlock request failed. Please retry.");
       return;
     }
     setLoading(true);
@@ -189,16 +216,28 @@ export function StoreChapterClient({
           <p className="mt-1 text-[11px] text-text-faint">
             {chapter.isFreePreview ? "Preview" : access ?? ""}
           </p>
+          {(chapter.body || teaser) && (
+            <div className="mt-3">
+              <StoreListenButton
+                text={chapter.body ?? teaser ?? undefined}
+                voiceCastJson={voiceCastJson}
+                storySeed={seriesId}
+                label={chapter.body ? "Listen to chapter" : "Listen to preview"}
+                size="md"
+              />
+            </div>
+          )}
         </header>
       ) : null}
 
       {locked && teaser ? (
         <div className="mt-4 space-y-3">
           <p className="text-xs text-text-muted">
-            Chapter locked. Unlock to continue from this preview.
-            {chapter?.priceCents != null && chapter.priceCents > 0
-              ? ` Price: $${(chapter.priceCents / 100).toFixed(2)}.`
-              : ""}
+            Chapter locked. Unlock to read the full chapter
+            {(chapter?.effectivePriceCents ?? chapter?.priceCents) != null &&
+            (chapter?.effectivePriceCents ?? chapter?.priceCents)! > 0
+              ? ` ($${(((chapter?.effectivePriceCents ?? chapter?.priceCents) ?? 0) / 100).toFixed(2)} — Stripe checkout coming soon).`
+              : " (paid unlock — Stripe checkout coming soon)."}
           </p>
           <pre className="reader-surface whitespace-pre-wrap rounded-lg p-3 font-serif text-[13px] leading-relaxed text-text-muted">
             {teaser}
@@ -207,19 +246,23 @@ export function StoreChapterClient({
             <p className="text-xs text-red-600 dark:text-red-400">{unlockError}</p>
           ) : null}
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => void unlock()}
-              className="rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-on-accent"
-            >
-              Unlock chapter
-            </button>
-            <Link
-              href="/auth/signin"
-              className="rounded-md border border-border-subtle px-3 py-1.5 text-xs text-text-muted"
-            >
-              Sign in
-            </Link>
+            {sessionLoading ? (
+              <span className="text-xs text-text-faint">…</span>
+            ) : isSignedIn ? (
+              <button
+                type="button"
+                onClick={() => void unlock()}
+                className="rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-on-accent"
+              >
+                Unlock chapter
+              </button>
+            ) : (
+              <>
+                <SignInLink className="rounded-md bg-gold-500/90 px-3 py-1.5 text-xs font-semibold text-on-accent">
+                  Sign in to unlock
+                </SignInLink>
+              </>
+            )}
           </div>
         </div>
       ) : chapter?.body ? (

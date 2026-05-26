@@ -66,6 +66,7 @@ export function StoryListenButton({
       text={chapters?.length ? undefined : fallbackText}
       chapters={chapters ?? undefined}
       voiceCastJson={voiceCastJson}
+      storySeed={storyId}
       label={label}
       className={className}
       size={size}

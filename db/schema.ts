@@ -180,6 +180,23 @@ export const chapters = pgTable(
   }),
 );
 
+/** Reader bookmarks — books saved from the catalog for later. */
+export const storySaves = pgTable(
+  "story_saves",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    storyId: text("story_id")
+      .notNull()
+      .references(() => stories.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.storyId] }),
+  }),
+);
+
 export const chapterUnlocks = pgTable(
   "chapter_unlocks",
   {
@@ -285,11 +302,17 @@ export const chapterUnlocksRelations = relations(chapterUnlocks, ({ one }) => ({
   }),
 }));
 
+export const storySavesRelations = relations(storySaves, ({ one }) => ({
+  user: one(users, { fields: [storySaves.userId], references: [users.id] }),
+  story: one(stories, { fields: [storySaves.storyId], references: [stories.id] }),
+}));
+
 export const storiesRelations = relations(stories, ({ one, many }) => ({
   author: one(users, { fields: [stories.userId], references: [users.id] }),
   reactions: many(storyReactions),
   comments: many(comments),
   chapters: many(chapters),
+  saves: many(storySaves),
 }));
 
 export const studioThreadsRelations = relations(studioThreads, ({ one, many }) => ({
@@ -320,6 +343,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   stories: many(stories),
   reactions: many(storyReactions),
   comments: many(comments),
+  storySaves: many(storySaves),
   chapterUnlocks: many(chapterUnlocks),
   studioThreads: many(studioThreads),
   studioAgents: many(studioAgents),

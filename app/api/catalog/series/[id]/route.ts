@@ -5,6 +5,7 @@ import {
   canReadChapterBody,
   getChapterAccessState,
 } from "@/lib/chapter-access";
+import { displayChapterPriceCents } from "@/lib/chapter-pricing";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -66,6 +67,7 @@ export async function GET(_req: Request, ctx: RouteCtx) {
         title: c.title,
         isFreePreview: c.isFreePreview,
         priceCents: c.priceCents,
+        effectivePriceCents: displayChapterPriceCents(c),
         access: state,
         canReadBody: canReadChapterBody(state),
       };
@@ -79,6 +81,7 @@ export async function GET(_req: Request, ctx: RouteCtx) {
         mood: story.mood,
         description: story.description,
         coverImageUrl: story.coverImageUrl,
+        voiceCastJson: story.voiceCastJson,
         createdAt:
           story.createdAt instanceof Date
             ? story.createdAt.toISOString()

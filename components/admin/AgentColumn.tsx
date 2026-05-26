@@ -12,7 +12,11 @@ type AgentColumnProps = {
   onDraftChange: (text: string) => void;
   onSelectAgent: (threadId: string) => void;
   onSave: () => void;
+  onGenerateChapter: () => void;
   canSave: boolean;
+  canGenerateChapter: boolean;
+  isGeneratingChapter: boolean;
+  chapterSuccess: string | null;
 };
 
 export function AgentColumn({
@@ -23,7 +27,11 @@ export function AgentColumn({
   onDraftChange,
   onSelectAgent,
   onSave,
+  onGenerateChapter,
   canSave,
+  canGenerateChapter,
+  isGeneratingChapter,
+  chapterSuccess,
 }: AgentColumnProps) {
   const agentsWithDraft = threads.filter((t) => t.agent);
 
@@ -78,18 +86,39 @@ export function AgentColumn({
       <div className="flex min-h-0 flex-1 flex-col">
         {agent ? (
           <>
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="text-xs text-text-muted">
-                Agent <span className="font-mono text-text-faint">{agent.id.slice(0, 8)}</span>
-              </p>
-              <button
-                type="button"
-                onClick={onSave}
-                disabled={!canSave}
-                className="rounded-md border border-gold-500/40 bg-gold-500/10 px-3 py-1 text-xs font-semibold text-accent disabled:opacity-40"
-              >
-                Save to library
-              </button>
+            <div className="mb-2 flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-text-muted">
+                  Agent{" "}
+                  <span className="font-mono text-text-faint">{agent.id.slice(0, 8)}</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={onGenerateChapter}
+                    disabled={!canGenerateChapter || isGeneratingChapter}
+                    className="rounded-md border border-border-subtle px-3 py-1 text-xs font-medium text-text-primary hover:border-gold-500/35 disabled:opacity-40"
+                  >
+                    {isGeneratingChapter ? "Generating…" : "Generate next chapter"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onSave}
+                    disabled={!canSave}
+                    className="rounded-md border border-gold-500/40 bg-gold-500/10 px-3 py-1 text-xs font-semibold text-accent disabled:opacity-40"
+                  >
+                    Save to library
+                  </button>
+                </div>
+              </div>
+              {!agent.storyId ? (
+                <p className="text-[10px] text-text-faint">
+                  Save to library first — new chapters append to that book, not a new one.
+                </p>
+              ) : null}
+              {chapterSuccess ? (
+                <p className="text-[10px] text-gold-400/90">{chapterSuccess}</p>
+              ) : null}
             </div>
             <EditorPanel value={draftBody} onChange={onDraftChange} />
           </>

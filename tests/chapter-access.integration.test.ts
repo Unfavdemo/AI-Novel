@@ -30,7 +30,7 @@ test("chapter access transitions: owner, preview, unlocked, locked", () => {
 
 test("paid chapter detection respects preview and price", () => {
   assert.equal(isPaidChapter({ isFreePreview: true, priceCents: 499 }), false);
-  assert.equal(isPaidChapter({ isFreePreview: false, priceCents: null }), false);
+  assert.equal(isPaidChapter({ isFreePreview: false, priceCents: null }), true);
   assert.equal(isPaidChapter({ isFreePreview: false, priceCents: 0 }), false);
   assert.equal(isPaidChapter({ isFreePreview: false, priceCents: 299 }), true);
 });
@@ -74,6 +74,7 @@ test("payment verification: stripe requires paid header", () => {
 test("payment verification: stub provider blocked in production-like mode", () => {
   process.env.PAYMENT_PROVIDER = "stub";
   process.env.ALLOW_STUB_PURCHASES = "false";
+  // @ts-expect-error NODE_ENV is read-only in TS types; tests need a prod-like value.
   process.env.NODE_ENV = "production";
 
   const req = new Request("http://localhost/api/catalog/chapters/ch1/unlock", {

@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { chapters, stories } from "@/db/schema";
+import { parseChapterPricingOverrides } from "@/lib/chapter-pricing";
 import { requireUser } from "@/lib/require-user";
 import { isAdminSession } from "@/lib/server/is-admin";
 import { safeAuth } from "@/lib/server/safe-auth";
@@ -75,13 +76,7 @@ export async function POST(req: Request, ctx: RouteCtx) {
     sortIndex = (agg?.m ?? -1) + 1;
   }
 
-  const isFreePreview =
-    b.isFreePreview === true ||
-    (typeof b.isFreePreview === "string" && b.isFreePreview === "true");
-  const priceCents =
-    typeof b.priceCents === "number" && Number.isFinite(b.priceCents)
-      ? Math.max(0, Math.floor(b.priceCents))
-      : null;
+  const { isFreePreview, priceCents } = parseChapterPricingOverrides(b, sortIndex);
 
   const [created] = await db.transaction(async (tx) => {
     await tx

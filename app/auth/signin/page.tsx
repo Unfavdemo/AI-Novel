@@ -27,6 +27,8 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
     fromQuery?.startsWith("/") && !fromQuery.startsWith("//")
       ? fromQuery
       : "/library";
+  const isStudioSignIn =
+    callbackUrl === "/studio" || callbackUrl.startsWith("/studio/");
   const rawError = sp.error;
   const errorCode =
     typeof rawError === "string" ? rawError : Array.isArray(rawError) ? rawError[0] : undefined;
@@ -40,8 +42,12 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
   return (
     <AuthCard
-      title="Welcome back"
-      description="Sign in to unlock chapters, save your shelf, and join story discussions."
+      title={isStudioSignIn ? "Admin sign-in" : "Welcome back"}
+      description={
+        isStudioSignIn
+          ? "Use your administrator email and password to open the admin workspace."
+          : "Sign in to unlock chapters, save your shelf, and join story discussions."
+      }
       footer={
         <div className="flex flex-col gap-2 text-center text-xs">
           <Link href="/auth/register" className="font-medium text-accent hover:underline">
@@ -65,11 +71,15 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             Email &amp; password
           </p>
           <SignInEmailForm callbackUrl={callbackUrl} />
-          {errorCode === "CredentialsSignin" || errorCode === "missing_credentials" ? (
+          {errorCode === "CredentialsSignin" ||
+          errorCode === "missing_credentials" ||
+          errorCode === "server" ? (
             <p className="mt-2 text-center text-xs text-red-600 dark:text-red-400">
               {errorCode === "missing_credentials"
                 ? "Enter your email and password."
-                : "Invalid email or password."}
+                : errorCode === "server"
+                  ? "Server error while signing in. Check DATABASE_URL and AUTH_SECRET."
+                  : "Invalid email or password."}
             </p>
           ) : null}
         </div>

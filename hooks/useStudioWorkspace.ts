@@ -12,7 +12,18 @@ import {
   type StudioThreadSummary,
 } from "@/lib/api/studio";
 import type { StoryGenerationParams } from "@/lib/api/llm";
+import { generateNextChapter } from "@/lib/api/stories";
+import { DEFAULT_CHAPTER_TARGET_CHARACTERS } from "@/lib/chapter-length";
 import { useCallback, useEffect, useState } from "react";
+
+const DEFAULT_CONTROLS: StoryGenerationParams = {
+  genre: "Literary thriller",
+  complexity: "High",
+  targetCharacterCount: DEFAULT_CHAPTER_TARGET_CHARACTERS,
+  mood: "Noir elegance",
+  literarySophistication: 58,
+  narrativeTension: 62,
+};
 
 export function useStudioWorkspace() {
   const [threads, setThreads] = useState<StudioThreadSummary[]>([]);
@@ -25,6 +36,8 @@ export function useStudioWorkspace() {
   const [loading, setLoading] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingChapter, setIsGeneratingChapter] = useState(false);
+  const [chapterSuccess, setChapterSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const refreshThreads = useCallback(async () => {
@@ -98,26 +111,12 @@ export function useStudioWorkspace() {
       threadId: newAgent.threadId,
       storyId: null,
       draftBody: "",
-      controls: {
-        genre: "Literary thriller",
-        complexity: "High",
-        targetCharacterCount: 8000,
-        mood: "Noir elegance",
-        literarySophistication: 58,
-        narrativeTension: 62,
-      },
+      controls: DEFAULT_CONTROLS,
       status: "draft",
     });
     setDraftBody("");
     setMessages([]);
-    setControls({
-      genre: "Literary thriller",
-      complexity: "High",
-      targetCharacterCount: 8000,
-      mood: "Noir elegance",
-      literarySophistication: 58,
-      narrativeTension: 62,
-    });
+    setControls(DEFAULT_CONTROLS);
     return thread.id;
   }, [refreshThreads]);
 
@@ -176,6 +175,35 @@ export function useStudioWorkspace() {
     await patchStudioAgent(agent.id, { controls });
   }, [agent, controls]);
 
+  const generateNextChapterForBook = useCallback(
+    async (direction?: string) => {
+      if (!agent?.storyId) {
+        setError("Save to library first to append chapters to this book.");
+        return;
+      }
+      setIsGeneratingChapter(true);
+      setError(null);
+      setChapterSuccess(null);
+      try {
+        const { chapter } = await generateNextChapter(agent.storyId, direction);
+        setChapterSuccess(`Added “${chapter.title}” (chapter ${chapter.sortIndex + 1}).`);
+        await refreshThreads();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Chapter generation failed");
+      } finally {
+        setIsGeneratingChapter(false);
+      }
+    },
+    [agent?.storyId, refreshThreads],
+  );
+
+  const afterStorySaved = useCallback(async () => {
+    await refreshThreads();
+    if (activeThreadId) {
+      await loadThread(activeThreadId);
+    }
+  }, [activeThreadId, loadThread, refreshThreads]);
+
   return {
     threads,
     activeThreadId,
@@ -193,8 +221,12 @@ export function useStudioWorkspace() {
     loading,
     loadingThread,
     isGenerating,
+    isGeneratingChapter,
+    chapterSuccess,
     error,
     sendChat,
+    generateNextChapterForBook,
+    afterStorySaved,
     refreshThreads,
     loadThread,
   };

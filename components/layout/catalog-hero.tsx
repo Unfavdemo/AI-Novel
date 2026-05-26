@@ -1,4 +1,4 @@
-import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
+import { ADMIN_WORKSPACE_NAME, APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import Link from "next/link";
 
 type CatalogHeroProps = {
@@ -40,7 +40,7 @@ export function CatalogHero({ showCreatorCta }: CatalogHeroProps) {
             href="/studio"
             className="rounded-lg border border-gold-500/35 bg-gold-500/10 px-4 py-2 text-sm font-semibold text-accent transition hover:bg-gold-500/15"
           >
-            Creator Studio
+            {ADMIN_WORKSPACE_NAME}
           </Link>
         ) : null}
       </div>

@@ -1,9 +1,12 @@
 import type { StoryGenerationParams } from "@/lib/api/llm";
+import { DEFAULT_CHAPTER_TARGET_CHARACTERS } from "@/lib/chapter-length";
+
+export { DEFAULT_CHAPTER_TARGET_CHARACTERS };
 
 export const DEFAULT_STUDIO_CONTROLS: StoryGenerationParams = {
   genre: "Literary thriller",
   complexity: "High",
-  targetCharacterCount: 8000,
+  targetCharacterCount: DEFAULT_CHAPTER_TARGET_CHARACTERS,
   mood: "Noir elegance",
   literarySophistication: 58,
   narrativeTension: 62,

@@ -4,8 +4,10 @@ import { StoryListenButton } from "@/components/book/StoryListenButton";
 import { PageShell } from "@/components/page-shell";
 import { StoryOwnerActions } from "@/components/library/StoryOwnerActions";
 import { StoryCover } from "@/components/story/story-cover";
+import { SignInLink } from "@/components/auth/sign-in-link";
 import { parseCategoriesJson, parseKeywordsJson } from "@/lib/story-listing-parse";
-import { useSession } from "next-auth/react";
+import { ADMIN_WORKSPACE_NAME } from "@/lib/brand";
+import { useAppSession } from "@/lib/hooks/use-app-session";
 import Link from "next/link";
 import { startTransition, useCallback, useEffect, useState } from "react";
 
@@ -38,7 +40,7 @@ type CommentRow = {
 };
 
 export function StoryDetailClient({ id }: { id: string }) {
-  const { status, data: sessionData } = useSession();
+  const { session: sessionData, isSignedIn, isLoading } = useAppSession();
   const [story, setStory] = useState<StoryPayload | null>(null);
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export function StoryDetailClient({ id }: { id: string }) {
   }, [load]);
 
   const sendReaction = async (value: "like" | "dislike" | null) => {
-    if (status !== "authenticated") return;
+    if (!isSignedIn) return;
     const res = await fetch(`/api/stories/${id}/reaction`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -83,13 +85,17 @@ export function StoryDetailClient({ id }: { id: string }) {
     void load();
   };
 
+  const isAdmin = sessionData?.user?.isAdmin === true;
+  const backHref = isAdmin ? "/studio" : "/library";
+  const backLabel = isAdmin ? ADMIN_WORKSPACE_NAME : "My library";
+
   const canManage =
-    status === "authenticated" &&
+    isSignedIn &&
     story &&
-    (sessionData?.user?.id === story.userId || sessionData?.user?.isAdmin === true);
+    (sessionData?.user?.id === story.userId || isAdmin);
 
   const postComment = async () => {
-    if (!commentBody.trim() || status !== "authenticated") return;
+    if (!commentBody.trim() || !isSignedIn) return;
     setPosting(true);
     try {
       const res = await fetch(`/api/stories/${id}/comments`, {
@@ -110,8 +116,8 @@ export function StoryDetailClient({ id }: { id: string }) {
     return (
       <PageShell max="content">
         <p className="text-sm text-red-300">{error}</p>
-        <Link href="/library" className="mt-3 inline-block text-sm text-gold-400">
-          Back to library
+        <Link href={backHref} className="mt-3 inline-block text-sm text-gold-400">
+          Back to {backLabel}
         </Link>
       </PageShell>
     );
@@ -129,10 +135,10 @@ export function StoryDetailClient({ id }: { id: string }) {
     <PageShell max="content">
       <article>
       <Link
-        href="/library"
+        href={backHref}
         className="text-[11px] font-medium uppercase tracking-wide text-gold-400/90 hover:text-gold-300"
       >
-        Library
+        {backLabel}
       </Link>
       <header className="mt-3 border-b border-border-subtle pb-4">
         <h1 className="text-xl font-semibold leading-tight tracking-tight text-text-primary sm:text-2xl">
@@ -226,7 +232,9 @@ export function StoryDetailClient({ id }: { id: string }) {
         <span className="text-[11px] tabular-nums text-text-muted">
           +{story.likesCount} · −{story.dislikesCount}
         </span>
-        {status === "authenticated" ? (
+        {isLoading ? (
+          <span className="text-xs text-text-faint">…</span>
+        ) : isSignedIn ? (
           <div className="flex gap-1">
             <button
               type="button"
@@ -254,9 +262,9 @@ export function StoryDetailClient({ id }: { id: string }) {
             </button>
           </div>
         ) : (
-          <Link href="/auth/signin" className="text-xs text-gold-400 underline">
+          <SignInLink className="text-xs text-gold-400 underline">
             Sign in to react
-          </Link>
+          </SignInLink>
         )}
       </div>
 
@@ -289,9 +297,13 @@ export function StoryDetailClient({ id }: { id: string }) {
           )}
         </ul>
 
-        {status === "authenticated" ? (
+        {isLoading ? (
+          <p className="mt-3 text-xs text-text-faint">Loading comments…</p>
+        ) : isSignedIn ? (
           <div className="mt-4">
             <textarea
+              id="story-comment-body"
+              name="commentBody"
               className="min-h-[88px] w-full rounded-md border border-border-subtle bg-obsidian-950/70 px-2.5 py-2 text-sm text-text-primary outline-none ring-gold-500/25 focus:ring-2"
               placeholder="Add a note for the author…"
               value={commentBody}
@@ -308,10 +320,7 @@ export function StoryDetailClient({ id }: { id: string }) {
           </div>
         ) : (
           <p className="mt-3 text-xs text-text-muted">
-            <Link href="/auth/signin" className="text-gold-400 underline">
-              Sign in
-            </Link>{" "}
-            to comment.
+            <SignInLink className="text-gold-400 underline">Sign in</SignInLink> to comment.
           </p>
         )}
       </section>

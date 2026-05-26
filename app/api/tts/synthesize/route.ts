@@ -2,6 +2,7 @@ import { safeAuth } from "@/lib/server/safe-auth";
 import { parseVoiceCastJson, resolveSpeakerToPreset } from "@/lib/speaker-voice";
 import { resolveElevenLabsVoiceId } from "@/lib/server/resolve-voice-id";
 import { synthesizeWithProvider } from "@/lib/server/tts-provider";
+import { classifyTtsErrorMessage } from "@/lib/tts-errors";
 import { recordUsageEvent } from "@/lib/server/usage-accounting";
 import { NextResponse } from "next/server";
 
@@ -80,9 +81,17 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Synthesis failed" },
-      { status: 502 },
-    );
+    const message =
+      error instanceof Error ? error.message : "Synthesis failed";
+    const code = classifyTtsErrorMessage(message);
+    const status =
+      code === "quota"
+        ? 402
+        : code === "auth"
+          ? 401
+          : code === "rate_limit"
+            ? 429
+            : 502;
+    return NextResponse.json({ error: message, code }, { status });
   }
 }
