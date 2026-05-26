@@ -95,7 +95,7 @@ function DialogShell({
   titleId: string;
   title: string;
   description?: string;
-  children: ReactNode;
+  children?: ReactNode;
   onCancel: () => void;
   submitLabel: string;
   cancelLabel: string;
@@ -144,7 +144,7 @@ function DialogShell({
         {description ? (
           <p className="mt-1 text-sm text-text-muted">{description}</p>
         ) : null}
-        <div className="mt-4">{children}</div>
+        {children ? <div className="mt-4">{children}</div> : null}
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"

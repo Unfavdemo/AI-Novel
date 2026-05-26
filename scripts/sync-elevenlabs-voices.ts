@@ -4,7 +4,7 @@
  */
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fetchPremadeVoicesFromElevenLabs } from "../lib/server/elevenlabs-voice-sync.ts";
+import { fetchPremadeVoicesFromElevenLabs } from "../lib/server/elevenlabs-voice-sync";
 
 const OUT = resolve(process.cwd(), "lib/elevenlabs-premade-catalog.ts");
 
