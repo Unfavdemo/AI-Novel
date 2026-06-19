@@ -6,11 +6,11 @@
 
 ---
 
-## How she plans to use this (product shape)
+## How studio operators plan to use this (product shape)
 
-This is **not** framed as an open marketplace where many writers share one public “studio.” The client wants the **production space to be hers alone**—a private place to create and control her catalog.
+This is **not** framed as an open marketplace where many writers share one public “studio.” A **creator / studio operator** wants the **production space to be theirs alone**—a private place to create and control their catalog.
 
-**How it earns money** is closer to **[Pocket FM](https://pocketfm.com)** than to a generic writing site: **long serials** (novels as ongoing series) sold **chapter by chapter** (and often listened to as audio) to **paying customers**. She **uses AI to generate and refine** stories that **she** publishes; end buyers are **readers/listeners**, not co-authors in her workspace.
+**How it earns money** is closer to **[Pocket FM](https://pocketfm.com)** than to a generic writing site: **long serials** (novels as ongoing series) sold **chapter by chapter** (and often listened to as audio) to **paying readers and listeners**. The studio operator **uses AI to generate and refine** stories they publish; end customers are not co-authors in the workspace. See `docs/STAKEHOLDERS.md`.
 
 That matters for cost thinking below: **writing bills** track how much **she** generates while building each title; **voice bills** track how much **finished audio** exists for customers to play (whether you render once per chapter or generate on demand). The napkin math still uses “clicks” and “minutes,” but picture **studio output + catalog listens**, not “every random visitor writes their own novel.”
 

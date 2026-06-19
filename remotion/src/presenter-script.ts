@@ -1,0 +1,33 @@
+import type { SlideId } from "./narration";
+
+/**
+ * Level 12 executive presentation — client-focused, metrics-driven.
+ * Optimized for natural ElevenLabs TTS delivery and maximum executive impact.
+ */
+export const PRESENTER_SCRIPT: Record<SlideId, string> = {
+  title: `This presentation introduces Atelier—a serialized audiobook platform purpose-built for an independent studio operator. The solution unifies AI-assisted authoring, text-to-speech narration, catalog publishing, and Pocket-FM-style chapter monetization within a single, fully owned codebase.`,
+
+  problem: `Our client operates as a private studio, not a multi-author marketplace. For independent operators publishing serialized fiction, the current ecosystem is deeply fragmented. Moving a manuscript from draft to a monetized, listenable chapter requires a disjointed toolchain—making production slow and cost-prohibitive. Meanwhile, readers expect a frictionless preview-to-unlock flow. No off-the-shelf platform combines a private generative studio with native monetization while preserving absolute catalog ownership.`,
+
+  competitors: `Market analysis highlights a clear strategic gap. Serial apps like Pocket FM offer strong listener experiences but force creators to surrender intellectual property and accept aggregator economics. Platforms like Wattpad, Kindle Vella, and Radish prove that audiences willingly pay for serial fiction, but they lack private AI utility. DIY setups fragment the workflow, and standalone AI writers stop short of publishing. Atelier bridges this divide with owned infrastructure controlled end-to-end.`,
+
+  audience: `The platform serves three core roles. First, the client acts as the studio operator with an exclusive, secure workspace. Second, readers discover stories via the public catalog and unlock premium chapters—typically priced between ninety-nine cents and one dollar and forty-nine cents per installment. Finally, listeners consume manuscript text and ElevenLabs audio in a unified player. Free preview chapters drive paid unlocks, ensuring the client retains maximum margin and catalog ownership.`,
+
+  solution: `Atelier is a full-stack Next.js application. Creators draft via OpenAI chat and isolated manuscript agents, narrate server-side through ElevenLabs, and publish instantly. The economics are highly compelling: a typical ten-minute chapter costs roughly two dollars and fifty cents in text-to-speech generation, plus about four cents per LLM draft pass. At a ninety-nine cent reader unlock, production costs are recovered after just three paying readers; every subsequent unlock is high-margin revenue on an owned asset. To ensure creative consistency, each agent is thread-isolated with a structured story-controls schema managing genre, tone, and tension, while prior chapters are injected into the model context to maintain flawless plot continuity.`,
+
+  demo: `The shipped product delivers three integrated surfaces: a public reader catalog for discovery, a private creator studio featuring conversational AI agents, and an immersive chapter player with refined lock-state messaging. Three core pillars are fully operational today: the generative AI studio, the owned catalog architecture, and automated server-side audio generation.`,
+
+  differentiation: `Atelier differentiates on four dimensions. It is a private studio, protecting intellectual property and release cadences. Consolidating authoring, narration, and sales slashes production time and costs by roughly ninety percent compared to traditional studio narration. The serial unlock user experience runs on infrastructure the client owns, escaping platform dependency. Critically, PostgreSQL with Drizzle models all core IP natively, meaning OpenAI and ElevenLabs are merely swappable server-side adapters. The client's database remains the absolute system of record.`,
+
+  tech: `The stack enforces data sovereignty by design. The Next.js App Router unifies the user interface and secure API routes. PostgreSQL with Drizzle owns the permanent intellectual property layer. OpenAI and ElevenLabs execute server-side only; API keys never reach the browser. Creative continuity is guarded through isolated per-thread agents, structured metadata passed on every generation, automated quality retries, and speaker-tag preservation. Auth.js manages secure sessions, and chapter checkout uses a stable stub flow engineered for immediate Stripe integration.`,
+
+  results: `Effectiveness was evaluated against our core MVP objectives. The end-to-end creator-to-reader pipeline is fully operational. Production costs of roughly two dollars and fifty-four cents per chapter versus a ninety-nine cent unlock price demonstrate highly viable unit economics at modest reader volumes—completely free of aggregator revenue shares. Furthermore, user walkthrough feedback directly drove shipped enhancements, including clearer locked-chapter messaging and re-authentication at checkout.`,
+
+  limitations: `Current MVP boundaries represent deliberate phase-one scope rather than architectural debt. Stub checkouts, web-only delivery, and text-to-speech tier caps are controlled rollouts ahead of production hardening. Because the backend was built API-first from day one, phase two will introduce live Stripe transactions without requiring database redesign. Phase three will deploy native mobile clients targeting the exact same endpoints the web app uses today—requiring zero schema migrations.`,
+
+  roadmap: `The roadmap is a formal three-phase scaling strategy. Phase one is delivered, providing the web MVP, owned catalog, studio pipeline, and checkout framework. Phase two introduces Stripe for verified revenue generation and automated testing. Phase three expands to native mobile apps on our existing API layer. Serialized audio fiction demand is accelerating; Atelier provides independent operators with the autonomy and architecture to scale seamlessly.`,
+
+  sources: `This solution is built on modern, industry-standard technologies: Next.js, PostgreSQL with Drizzle ORM, OpenAI, ElevenLabs, and Auth.js. For a deeper technical review, please consult the solution documentation brief, the deliverable report with test evidence, and the client total cost of ownership analysis.`,
+
+  closing: `In summary, Atelier delivers a client-owned serialized audiobook ecosystem: a private AI studio, a public monetized catalog, verified unit economics, and a data architecture that eliminates vendor lock-in. The foundation is fully operational; the scaling path is clearly defined. Thank you, and I welcome your questions.`,
+};

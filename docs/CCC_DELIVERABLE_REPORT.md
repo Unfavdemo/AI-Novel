@@ -5,27 +5,60 @@ This document provides the required artifacts for:
 - CCC.1.1 - Understand and Identifying Problem
 - CCC.1.2 - Identify and Plan a Solution
 - CCC.1.4 - Test and Improve
+- **Level 12 - Communicating and Documenting My Solution** (see `docs/SOLUTION_DOCUMENTATION.md`)
 
 The analysis is grounded in the current project state from `README.md`, `docs/CLIENT_PRICING_AND_TCO.md`, implementation files in `app/api`, and core service/schema files in `lib` and `db`.
 
+### Level 12 artifact index
+
+| Requirement area | Primary artifact |
+|------------------|----------------|
+| Industry format, solution explanation, organization | `docs/SOLUTION_DOCUMENTATION.md` |
+| Visuals and walkthrough | `docs/presentation.pdf`, `docs/atelier-presentation.mp4`, `docs/screenshots/` |
+| Effectiveness and evidence | § CCC.1.4 below; smoke tests (`pnpm test:smoke`) |
+| Citations, further reading, changelog | `docs/SOLUTION_DOCUMENTATION.md` § Citations; `docs/CHANGELOG.md` |
+| Security and legal | `docs/APP_PRIVACY_DATA_INVENTORY.md`; limitations in solution doc |
+
 ## CCC.1.1 - Problem Statement Document
 
+Canonical product problem: `docs/PROBLEM_STATEMENT.md`
+
 ### Clear Description Of The Problem
-AI-Novel has a clear product direction (serialized fiction creation and chapter-by-chapter consumption). Remaining gaps are concentrated in production payments and native mobile shells. Current maturity includes:
+
+**Independent creators who publish serialized audio fiction cannot move from draft manuscript to monetized, listenable chapters in a single workflow.** Writing, narration, catalog hosting, and per-chapter sales live in separate tools that were not designed for serial unlock models. Production stays slow and expensive; readers get a disjointed preview → unlock → continue experience. Indie studios cannot match the pace or retention of Pocket-FM-style platforms without manually assembling a full production stack.
+
+**What is broken today**
+- Fragmented toolchain across writing, audio, and storefront apps
+- High per-chapter production cost (manual revision + narration)
+- Reader friction when preview, unlock, and listen are split across surfaces
+- No creator-owned platform that unifies AI-assisted authoring, TTS, and chapter monetization
+
+**Desired outcome** — One web application where creators draft in a private studio, narrate with TTS, publish to a public catalog with free previews and paid unlocks, and readers consume text and audio in one chapter-by-chapter flow (Atelier MVP).
+
+### Implementation Gaps (Current Build)
+
+The product direction is clear; remaining engineering gaps are concentrated in production hardening:
+- Chapter purchase flow uses stub unlocks pending Stripe integration
+- Native iOS/Android shells not yet built (API-first backend in place)
+- Automated smoke tests exist; broader CI and production monitoring still maturing
+
+Current maturity includes:
 - OpenAI-backed manuscript generation and multi-turn `/api/ai/chat` in the admin workspace
 - ElevenLabs-backed TTS with multilingual model and tier-aware character budgets
 - Dual-column `/studio` workspace (chat + isolated agent drafts)
-- Stubbed chapter purchase flow pending Stripe hardening
+- End-to-end creator → reader pipeline demonstrable in one Next.js app
 
 ### Context (Who, Where, When)
-- **Who:** A primary creator (private production studio owner) and reader/listener end users.
-- **Where:** Next.js web app with creator workflows at `/studio` and reader catalog at `/`.
+- **Who:** See `docs/STAKEHOLDERS.md`. Primary groups:
+  - **Creators / studio operators** — independent authors or small studios with a private production workspace
+  - **Readers & listeners** — paying customers on the public catalog (preview, unlock, chapter audio)
+- **Where:** Next.js web app — creators at `/studio` and `/library`; readers at `/` (catalog) and `/store` (unlocks).
 - **When:** Current build stage; core features exist, but monetization and AI quality/reliability are not fully production-integrated.
 
 ### Why It Matters (Impact)
 - Monetization risk: chapter unlock flow currently records stub unlocks and can be disabled by environment gating.
-- Reliability risk: no automated tests or CI workflows to prevent regressions in auth, story management, chapter access, and social interactions.
-- Product trust risk: placeholder AI writing and TTS do not represent final quality expectations for paid users.
+- Reliability risk: smoke tests cover critical API paths, but comprehensive CI workflows are not yet in place for all regressions.
+- Product trust risk: AI writing and TTS quality vary with provider configuration and must be tuned before paid-tier expectations.
 - Execution risk: without a structured sprint plan and risk controls, delivery can drift from feasibility and budget constraints.
 
 ## Constraint Analysis
@@ -41,7 +74,7 @@ AI-Novel has a clear product direction (serialized fiction creation and chapter-
   - Chapter unlock path inserts unlock records with `source: "stub"` and depends on `ALLOW_STUB_PURCHASES` behavior.
 - Operational constraints:
   - Deployment and behavior are environment-driven (`DATABASE_URL`, auth keys, feature flags).
-  - No automated test harness is present in repository patterns (`*.test.*`, `*.spec.*`) and no CI workflow files are currently defined.
+  - Smoke test harness (`scripts/smoke-sprint3.ts`, `pnpm test:smoke`) covers critical paths; broader unit/integration coverage and CI gating remain in progress.
 
 ### Resource Constraints (Time, Skill, Data)
 - Team bandwidth appears constrained toward incremental delivery (scaffold-first implementation approach).
@@ -181,13 +214,13 @@ Core user stories:
 - **Frontend:** Next.js App Router pages for catalog, store routes, library routes, and creator studio.
 - **Backend:** Route handlers in `app/api/**` for auth, stories, chapters, catalog, comments, and reactions.
 - **Database:** PostgreSQL with Drizzle schema covering users/auth tables, stories, chapters, chapter unlocks, comments, and reactions.
-- **AI Layer:** Abstracted text and voice services currently represented by placeholder modules, to be replaced by server-integrated providers.
+- **AI Layer:** Server-integrated OpenAI (text generation, studio chat) and ElevenLabs (TTS) behind route handlers with usage tracking and tier caps.
 
 ### Architecture Diagram
 ```mermaid
 flowchart LR
-  creatorUser[CreatorUser]
-  readerUser[ReaderUser]
+  creatorUser[CreatorStudioOperator]
+  readerUser[ReaderListener]
   webApp[NextJsWebApp]
   apiLayer[RouteHandlersApi]
   authLayer[NextAuthLayer]
@@ -243,9 +276,9 @@ flowchart LR
 - Reliability paths: auth-required endpoints, not-found handling, and environment-gated behavior.
 
 #### Who Tested
-- Primary developer (self-test across all core flows).
-- Peer reviewer (independent run-through of acceptance checklist).
-- Target user representative (creator-focused usability session).
+- Development team (self-test across all core flows).
+- Creator representative (studio, publish, library usability).
+- Reader representative (catalog, unlock, chapter player walkthrough).
 
 #### How Tested
 - Manual scenario scripts for end-to-end validation in local and staging.
@@ -255,10 +288,10 @@ flowchart LR
 ### Feedback Log (Structured)
 | Feedback ID | Source | Category | Observation | Severity | Suggested Action |
 |---|---|---|---|---|---|
-| FB-01 | Creator user | Usability | Story generation controls are clear but publishing state is easy to misread | Medium | Add stronger status labels and publish visibility cues |
-| FB-02 | Peer tester | Reliability | Unlock flow behavior is unclear on session timeout | High | Improve auth-expired messaging and retry path |
-| FB-03 | Reader user | Monetization UX | Locked chapter messaging needs clearer value explanation | Medium | Add concise benefit + price explanation before unlock action |
-| FB-04 | Developer review | AI Quality | Placeholder output quality is not production-grade | High | Replace placeholder generation with provider-backed implementation and evaluation set |
+| FB-01 | Creator representative | Usability | Story generation controls are clear but publishing state is easy to misread | Medium | Add stronger status labels and publish visibility cues |
+| FB-02 | Reader walkthrough | Reliability | Unlock flow behavior is unclear on session timeout | High | Improve auth-expired messaging and retry path |
+| FB-03 | Reader representative | Monetization UX | Locked chapter messaging needs clearer value explanation | Medium | Add concise benefit + price explanation before unlock action |
+| FB-04 | Developer review | AI Quality | Output quality varies with prompts and model tier | Medium | Continue prompt templates, evaluation sets, and provider configuration tuning |
 
 ### Iteration Log (Before Vs After)
 | Iteration | Before | Change Applied | After |
@@ -297,7 +330,8 @@ flowchart LR
   - Release gate requires smoke pass, unresolved high-severity issue review, and rollback path confirmation for any unlock/auth-sensitive change.
 
 ## Submission Checklist Mapping
-- Problem statement document: complete.
+- Level 12 solution documentation: complete (`docs/SOLUTION_DOCUMENTATION.md`).
+- Problem statement document: complete (`docs/PROBLEM_STATEMENT.md`).
 - Context + impact + constraints: complete.
 - Existing solution analysis (3 options): complete.
 - Solution decision and tradeoff justification: complete.

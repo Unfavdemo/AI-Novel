@@ -2,6 +2,10 @@
 
 # dependencies
 /node_modules
+/remotion/node_modules
+/remotion/out
+/remotion/public/voiceover/*.mp3
+docs/atelier-presentation.mp4
 /.pnp
 .pnp.*
 .yarn/*

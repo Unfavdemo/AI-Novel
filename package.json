@@ -17,7 +17,10 @@
     "db:clear-stories": "node --import tsx --env-file=.env ./scripts/clear-stories.ts",
     "db:clear-chats": "node --import tsx --env-file=.env ./scripts/clear-studio-chats.ts",
     "db:apply-chapter-pricing": "node --import tsx --env-file=.env ./scripts/apply-serial-chapter-pricing.ts",
-    "voices:sync": "node --import tsx --env-file=.env ./scripts/sync-elevenlabs-voices.ts"
+    "voices:sync": "node --import tsx --env-file=.env ./scripts/sync-elevenlabs-voices.ts",
+    "video:studio": "pnpm -C remotion studio",
+    "video:render": "pnpm -C remotion render",
+    "video:voiceover": "pnpm -C remotion voiceover:generate"
   },
   "dependencies": {
     "@auth/core": "^0.41.2",

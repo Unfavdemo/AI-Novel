@@ -1,5 +1,5 @@
 /**
- * Demo author + public multi-chapter series (book-length chapters for catalog testing).
+ * Demo author + public multi-chapter series for catalog testing.
  * Run: pnpm db:seed (requires DATABASE_URL)
  * Re-run: removes demo user CASCADE then re-inserts.
  */

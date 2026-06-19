@@ -78,6 +78,11 @@ The app sets **viewport** metadata to disable user pinch-zoom (`userScalable: fa
 
 ## 8. Change log
 
-- Initial inventory added for mobile WebView / store compliance work (account deletion, error boundaries, privacy documentation).
+| Date | Change |
+|------|--------|
+| 2026-05 | Initial inventory for mobile WebView / store compliance (account deletion, error boundaries) |
+| 2026-06-12 | Cross-referenced `docs/CHANGELOG.md` for deliverable-wide version history |
 
-When you add analytics, push notifications, or crash reporting, append a new subsection here and update store forms accordingly.
+Project-wide documentation changelog: `docs/CHANGELOG.md`.
+
+When you add analytics, push notifications, or crash reporting, append a row here and update store forms accordingly.

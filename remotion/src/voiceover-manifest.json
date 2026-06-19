@@ -1,0 +1,94 @@
+{
+  "enabled": true,
+  "voiceId": "iP95p4xoKVk53GoZ742B",
+  "model": "eleven_multilingual_v2",
+  "voiceSettings": {
+    "stability": 0.38,
+    "similarity_boost": 0.78,
+    "style": 0,
+    "speed": 0.93,
+    "use_speaker_boost": true
+  },
+  "source": "src/presenter-script.ts",
+  "generatedAt": "2026-06-12T17:47:03.323Z",
+  "segments": [
+    {
+      "id": "title",
+      "file": "voiceover/01-title.mp3",
+      "durationSeconds": 20.74,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "problem",
+      "file": "voiceover/02-problem.mp3",
+      "durationSeconds": 34.3,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "competitors",
+      "file": "voiceover/03-competitors.mp3",
+      "durationSeconds": 38.77,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "audience",
+      "file": "voiceover/04-audience.mp3",
+      "durationSeconds": 32.78,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "solution",
+      "file": "voiceover/05-solution.mp3",
+      "durationSeconds": 56.14,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "demo",
+      "file": "voiceover/06-demo.mp3",
+      "durationSeconds": 25.21,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "differentiation",
+      "file": "voiceover/07-differentiation.mp3",
+      "durationSeconds": 39.29,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "tech",
+      "file": "voiceover/08-tech.mp3",
+      "durationSeconds": 44.98,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "results",
+      "file": "voiceover/09-results.mp3",
+      "durationSeconds": 35.19,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "limitations",
+      "file": "voiceover/10-limitations.mp3",
+      "durationSeconds": 31.48,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "roadmap",
+      "file": "voiceover/11-roadmap.mp3",
+      "durationSeconds": 34.93,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "sources",
+      "file": "voiceover/12-sources.mp3",
+      "durationSeconds": 21.34,
+      "padSeconds": 0.75
+    },
+    {
+      "id": "closing",
+      "file": "voiceover/13-closing.mp3",
+      "durationSeconds": 23.22,
+      "padSeconds": 0.75
+    }
+  ]
+}
